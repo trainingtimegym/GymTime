@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Gestión de Gimnasio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-page:#121417;
+    --surface:#1C1F24;
+    --surface-2:#24282F;
+    --border:#31353C;
+    --accent:#D7FF3D;
+    --text-primary:#F2F3F1;
+    --text-secondary:#9AA0A8;
+    --text-muted:#666B72;
+    --verde:#3DDC84;
+    --verde-bg:#173324;
+    --amarillo:#FFC93D;
+    --amarillo-bg:#332B10;
+    --rojo:#FF4D4D;
+    --rojo-bg:#331414;
+    --vencido:#E23636;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:var(--bg-page);
+    color:var(--text-primary);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    padding-bottom:80px;
+  }
+  .oculto{display:none !important;}
+
+  #pantallaAcceso{
+    min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:24px;
+  }
+  #pantallaAcceso h1{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:1px;color:var(--accent);}
+  #pantallaAcceso input{width:100%;max-width:280px;}
+  #pantallaAcceso button{width:100%;max-width:280px;}
+
+  header{
+    padding:20px 20px 16px;
+    border-bottom:1px solid var(--border);
+    position:sticky;top:0;background:var(--bg-page);z-index:10;
+  }
+  header h1{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:32px;letter-spacing:1px;
+    color:var(--accent);
+  }
+  header p{color:var(--text-secondary);font-size:13px;margin-top:2px;}
+
+  main{max-width:640px;margin:0 auto;padding:20px 16px 40px;}
+
+  nav.tabs{
+    display:flex;max-width:640px;margin:0 auto;
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:4px;gap:4px;position:sticky;top:78px;z-index:9;
+    overflow-x:auto;
+  }
+  nav.tabs button{
+    flex:1;background:transparent;border:none;color:var(--text-secondary);
+    font-family:'Inter',sans-serif;font-weight:600;font-size:12px;
+    padding:10px 4px;border-radius:9px;cursor:pointer;transition:all .15s;white-space:nowrap;
+  }
+  nav.tabs button.activo{background:var(--accent);color:#121417;}
+
+  input, select{
+    width:100%;background:var(--surface-2);border:1px solid var(--border);
+    color:var(--text-primary);padding:12px 14px;border-radius:10px;
+    font-family:'Inter',sans-serif;font-size:15px;outline:none;
+  }
+  input:focus, select:focus{border-color:var(--accent);}
+  label{display:block;font-size:12px;color:var(--text-secondary);margin:14px 0 6px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+  button.primario{
+    background:var(--accent);color:#121417;border:none;
+    font-weight:700;font-size:15px;padding:14px;border-radius:10px;
+    cursor:pointer;width:100%;margin-top:18px;
+  }
+  button.primario:active{transform:scale(.98);}
+  button.secundario{
+    background:var(--surface-2);color:var(--text-primary);border:1px solid var(--border);
+    font-weight:600;font-size:14px;padding:12px;border-radius:10px;cursor:pointer;width:100%;
+  }
+
+  .buscador{display:flex;gap:8px;margin-bottom:20px;}
+  .buscador input{flex:1;}
+  .buscador button{
+    background:var(--accent);border:none;color:#121417;border-radius:10px;
+    padding:0 18px;font-weight:700;cursor:pointer;
+  }
+
+  .card{
+    background:var(--surface);border:1px solid var(--border);border-radius:14px;
+    padding:18px;margin-bottom:14px;
+  }
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .card-nombre{font-size:17px;font-weight:700;}
+  .card-sub{font-size:13px;color:var(--text-secondary);margin-top:2px;}
+  select.estado-select{width:auto;font-size:12px;padding:6px 10px;}
+
+  .semaforo-wrap{margin:14px 0 8px;}
+  .semaforo-track{height:10px;background:var(--surface-2);border-radius:6px;overflow:hidden;}
+  .semaforo-fill{height:100%;border-radius:6px;transition:width .3s;}
+  .semaforo-info{display:flex;justify-content:space-between;margin-top:8px;font-size:13px;}
+  .dias-num{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.5px;}
+  .badge{
+    display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.5px;
+  }
+  .b-verde{background:var(--verde-bg);color:var(--verde);}
+  .b-amarillo{background:var(--amarillo-bg);color:var(--amarillo);}
+  .b-rojo{background:var(--rojo-bg);color:var(--rojo);}
+  .b-vencido{background:var(--rojo-bg);color:var(--vencido);}
+  .b-sin{background:var(--surface-2);color:var(--text-muted);}
+
+  .card-acciones{display:flex;gap:8px;margin-top:14px;}
+  .card-acciones button{flex:1;font-size:13px;padding:10px;}
+  .wa-btn{background:var(--verde-bg) !important;color:var(--verde) !important;border:1px solid var(--verde) !important;}
+
+  .form-pago{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);}
+  .fila-2{display:flex;gap:10px;}
+  .fila-2 > div{flex:1;}
+
+  .vacio{text-align:center;color:var(--text-muted);padding:40px 20px;font-size:14px;}
+  .toast{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+    background:var(--accent);color:#121417;padding:12px 20px;border-radius:10px;
+    font-weight:600;font-size:14px;z-index:100;opacity:0;transition:opacity .3s;pointer-events:none;
+  }
+  .toast.mostrar{opacity:1;}
+
+  .recordatorio-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+  .recordatorio-header .dias-num{font-size:20px;}
+
+  .config-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+  .config-monto-actual{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--accent);margin:8px 0 20px;}
+</style>
+</head>
+<body>
+
+<div id="pantallaAcceso">
+  <h1>🏋 GESTIÓN GYM</h1>
+  <input type="password" id="inputClave" placeholder="Clave de acceso" inputmode="numeric">
+  <button class="primario" style="margin-top:4px" onclick="validarClave()">Ingresar</button>
+  <p id="errorClave" style="color:var(--rojo);font-size:13px;display:none;">Clave incorrecta</p>
+</div>
+
+<div id="app" class="oculto">
+  <header>
+    <h1 id="tituloHeader">GESTIÓN GYM</h1>
+    <p>Registro de socios y pagos</p>
+  </header>
+
+  <nav class="tabs">
+    <button class="activo" data-tab="buscar" onclick="cambiarTab('buscar')">Buscar</button>
+    <button data-tab="alta" onclick="cambiarTab('alta')">Alta rápida</button>
+    <button data-tab="recordatorios" onclick="cambiarTab('recordatorios')">Recordatorios</button>
+    <button data-tab="config" onclick="cambiarTab('config')">Config</button>
+  </nav>
+
+  <main>
+    <section id="tab-buscar">
+      <div class="buscador">
+        <input id="inputBusqueda" placeholder="DNI, celular o nombre..." autocomplete="off">
+        <button onclick="buscar()">Buscar</button>
+      </div>
+      <div id="resultadosBusqueda"></div>
+    </section>
+
+    <section id="tab-alta" class="oculto">
+      <label>DNI</label>
+      <input id="altaDni" inputmode="numeric" placeholder="Ej: 30123456">
+      <label>Nombre</label>
+      <input id="altaNombre" placeholder="Nombre">
+      <label>Apellido</label>
+      <input id="altaApellido" placeholder="Apellido">
+      <label>Celular</label>
+      <input id="altaCelular" inputmode="numeric" placeholder="Ej: 3482123456">
+      <p class="card-sub" style="margin-top:14px;">Se carga automático con el plan Mensual configurado.</p>
+      <button class="primario" onclick="darAlta()">Cargar socio</button>
+    </section>
+
+    <section id="tab-recordatorios" class="oculto">
+      <div class="recordatorio-header">
+        <div>
+          <div class="dias-num" id="cantidadMorosos">-</div>
+          <div class="card-sub">socios en rojo o vencidos</div>
+        </div>
+        <button class="secundario" style="width:auto;padding:10px 16px;" onclick="cargarRecordatorios()">Actualizar</button>
+      </div>
+      <div class="fila-2" style="margin-bottom:16px;">
+        <button class="secundario" onclick="copiarMensajeGrupal()">📋 Copiar mensaje</button>
+        <button class="secundario wa-btn" onclick="abrirGrupoWhatsapp()">Abrir grupo</button>
+      </div>
+      <div id="listaRecordatorios"></div>
+    </section>
+
+    <section id="tab-config" class="oculto">
+      <div class="config-card">
+        <label style="margin-top:0;">Monto de la cuota mensual</label>
+        <div class="config-monto-actual" id="montoActualDisplay">$ 0</div>
+        <label>Nuevo monto</label>
+        <input id="inputNuevoMonto" type="number" inputmode="numeric" placeholder="30000">
+        <button class="primario" onclick="guardarConfiguracion()">Actualizar monto</button>
+        <p class="card-sub" style="margin-top:14px;">Este monto se usa automáticamente en los mensajes de WhatsApp y al registrar un pago nuevo.</p>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="config.js"></script>
+<script>
+let configCache = { plan: 'Mensual', duracionDias: 30, precio: 0 };
+
+function validarClave(){
+  const clave = document.getElementById('inputClave').value;
+  if(clave === (window.CLAVE_ACCESO || 'Enzo26')){
+    document.getElementById('pantallaAcceso').classList.add('oculto');
+    document.getElementById('app').classList.remove('oculto');
+    sessionStorage.setItem('gym_ok', '1');
+    document.getElementById('tituloHeader').textContent = CONFIG.NOMBRE_GIMNASIO || 'GESTIÓN GYM';
+    cargarConfiguracion();
+  } else {
+    document.getElementById('errorClave').style.display = 'block';
+  }
+}
+
+if(sessionStorage.getItem('gym_ok') === '1'){
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('pantallaAcceso').classList.add('oculto');
+    document.getElementById('app').classList.remove('oculto');
+    document.getElementById('tituloHeader').textContent = CONFIG.NOMBRE_GIMNASIO || 'GESTIÓN GYM';
+    cargarConfiguracion();
+  });
+}
+
+function mostrarToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('mostrar');
+  setTimeout(() => t.classList.remove('mostrar'), 2200);
+}
+
+function cambiarTab(tab){
+  document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('activo', b.dataset.tab === tab));
+  document.querySelectorAll('main section').forEach(s => s.classList.add('oculto'));
+  document.getElementById('tab-' + tab).classList.remove('oculto');
+  if(tab === 'recordatorios') cargarRecordatorios();
+  if(tab === 'config') cargarConfiguracion();
+}
+
+async function llamarApi(accion, params){
+  const url = new URL(CONFIG.API_URL);
+  url.searchParams.set('accion', accion);
+  for(const k in params) url.searchParams.set(k, params[k]);
+  const res = await fetch(url);
+  return await res.json();
+}
+
+async function cargarConfiguracion(){
+  try{
+    const r = await llamarApi('obtenerConfiguracion', {});
+    configCache = r;
+    const disp = document.getElementById('montoActualDisplay');
+    if(disp) disp.textContent = '$ ' + Number(r.precio || 0).toLocaleString('es-AR');
+  }catch(e){ console.error(e); }
+}
+
+async function guardarConfiguracion(){
+  const nuevoMonto = document.getElementById('inputNuevoMonto').value;
+  if(!nuevoMonto){ mostrarToast('Ingresá un monto'); return; }
+  const r = await llamarApi('actualizarConfiguracion', {datos: JSON.stringify({ precio: nuevoMonto, duracionDias: 30 })});
+  if(r.ok){
+    mostrarToast('Monto actualizado ✓');
+    document.getElementById('inputNuevoMonto').value = '';
+    cargarConfiguracion();
+  }
+}
+
+function colorInfo(color){
+  const map = {
+    verde:{clase:'b-verde', hex:'var(--verde)', label:'Al día'},
+    amarillo:{clase:'b-amarillo', hex:'var(--amarillo)', label:'Se acerca'},
+    rojo:{clase:'b-rojo', hex:'var(--rojo)', label:'Últimos días'},
+    vencido:{clase:'b-vencido', hex:'var(--vencido)', label:'Vencido'},
+    sin_pagos:{clase:'b-sin', hex:'var(--text-muted)', label:'Sin pagos'}
+  };
+  return map[color] || map.sin_pagos;
+}
+
+function renderSocioCard(s, contenedor){
+  const info = colorInfo(s.colorSemaforo);
+  const pct = s.diasRestantes === null ? 0 : Math.max(0, Math.min(100, (s.diasRestantes / (s.duracionDias || 30)) * 100));
+  const estados = ['Activo','Pausado','Baja'];
+
+  const div = document.createElement('div');
+  div.className = 'card';
+  div.innerHTML = `
+    <div class="card-top">
+      <div>
+        <div class="card-nombre">${s.nombre} ${s.apellido}</div>
+        <div class="card-sub">DNI ${s.dni} · ${s.celular || 'sin celular'}</div>
+      </div>
+      <select class="estado-select" onchange="cambiarEstadoSocio('${s.dni}', this.value)">
+        ${estados.map(e => `<option value="${e}" ${e===s.estado?'selected':''}>${e}</option>`).join('')}
+      </select>
+    </div>
+
+    <div class="semaforo-wrap">
+      <div class="semaforo-track"><div class="semaforo-fill" style="width:${pct}%;background:${info.hex}"></div></div>
+      <div class="semaforo-info">
+        <span class="dias-num" style="color:${info.hex}">${s.diasRestantes === null ? '—' : (s.diasRestantes < 0 ? 'Venció' : s.diasRestantes + ' días')}</span>
+        <span class="badge ${info.clase}">${info.label}</span>
+      </div>
+      <div class="card-sub" style="margin-top:4px;">${s.fechaVencimiento ? 'Vence: ' + s.fechaVencimiento : 'Todavía no registró un pago'}</div>
+    </div>
+
+    <div class="card-acciones">
+      <button class="secundario" onclick="toggleFormPago('${s.dni}')">💳 Registrar pago</button>
+      ${s.linkWhatsapp ? `<button class="secundario wa-btn" onclick="window.open('${s.linkWhatsapp}','_blank')">WhatsApp</button>` : ''}
+    </div>
+
+    <div class="form-pago oculto" id="formPago-${s.dni}">
+      <div class="fila-2">
+        <div><label>Monto ($)</label><input id="montoPago-${s.dni}" type="number" inputmode="numeric" value="${configCache.precio || ''}"></div>
+        <div><label>Días</label><input id="diasPago-${s.dni}" type="number" inputmode="numeric" value="${configCache.duracionDias || 30}"></div>
+      </div>
+      <button class="primario" onclick="confirmarPago('${s.dni}')">Confirmar pago</button>
+    </div>
+  `;
+  contenedor.appendChild(div);
+}
+
+async function buscar(){
+  const q = document.getElementById('inputBusqueda').value.trim();
+  const cont = document.getElementById('resultadosBusqueda');
+  if(!q){ cont.innerHTML = ''; return; }
+  cont.innerHTML = '<div class="vacio">Buscando...</div>';
+  const r = await llamarApi('buscarSocio', {query: q});
+  cont.innerHTML = '';
+  if(!r.resultados || r.resultados.length === 0){
+    cont.innerHTML = '<div class="vacio">No se encontraron socios. Probá con otro dato o cargalo en "Alta rápida".</div>';
+    return;
+  }
+  r.resultados.forEach(s => renderSocioCard(s, cont));
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('inputBusqueda').addEventListener('keydown', e => { if(e.key === 'Enter') buscar(); });
+});
+
+function toggleFormPago(dni){
+  document.getElementById('formPago-' + dni).classList.toggle('oculto');
+}
+
+async function confirmarPago(dni){
+  const dias = document.getElementById('diasPago-' + dni).value;
+  const monto = document.getElementById('montoPago-' + dni).value;
+
+  const r = await llamarApi('registrarPago', {datos: JSON.stringify({ dni, monto, dias })});
+
+  if(r.ok){
+    mostrarToast('Pago registrado. Próximo vencimiento: ' + r.nuevoVencimiento);
+    buscar();
+  } else {
+    mostrarToast('Error: ' + (r.error || 'no se pudo registrar'));
+  }
+}
+
+async function cambiarEstadoSocio(dni, nuevoEstado){
+  const r = await llamarApi('cambiarEstado', {dni, nuevoEstado});
+  if(r.ok) mostrarToast('Estado actualizado a ' + nuevoEstado);
+}
+
+async function darAlta(){
+  const datos = {
+    dni: document.getElementById('altaDni').value.trim(),
+    nombre: document.getElementById('altaNombre').value.trim(),
+    apellido: document.getElementById('altaApellido').value.trim(),
+    celular: document.getElementById('altaCelular').value.trim()
+  };
+  if(!datos.dni || !datos.nombre){
+    mostrarToast('Faltan datos: DNI y nombre son obligatorios');
+    return;
+  }
+  const r = await llamarApi('altaSocio', {datos: JSON.stringify(datos)});
+  if(r.ok){
+    mostrarToast('Socio cargado ✓');
+    ['altaDni','altaNombre','altaApellido','altaCelular'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('altaDni').focus();
+  } else {
+    mostrarToast('Error: ' + (r.error || 'no se pudo cargar'));
+  }
+}
+
+let ultimosMorosos = [];
+async function cargarRecordatorios(){
+  const cont = document.getElementById('listaRecordatorios');
+  cont.innerHTML = '<div class="vacio">Cargando...</div>';
+  const r = await llamarApi('listarPorVencer', {});
+  ultimosMorosos = r.resultados || [];
+  document.getElementById('cantidadMorosos').textContent = ultimosMorosos.length;
+  cont.innerHTML = '';
+  if(ultimosMorosos.length === 0){
+    cont.innerHTML = '<div class="vacio">Nadie está por vencer ni vencido. Todo al día 🎉</div>';
+    return;
+  }
+  ultimosMorosos.forEach(s => renderSocioCard(s, cont));
+}
+
+function copiarMensajeGrupal(){
+  if(ultimosMorosos.length === 0){
+    mostrarToast('No hay morosos para armar el mensaje');
+    return;
+  }
+  const nombres = ultimosMorosos.map(s => `- ${s.nombre} ${s.apellido} (${s.diasRestantes < 0 ? 'vencido' : s.diasRestantes + ' días'})`).join('\\n');
+  const texto = `Recordatorio de pagos pendientes:\\n\\n${nombres}\\n\\n¡Los esperamos para renovar!`;
+  navigator.clipboard.writeText(texto).then(() => mostrarToast('Mensaje copiado, pegalo en el grupo'));
+}
+
+function abrirGrupoWhatsapp(){
+  const link = CONFIG.LINK_GRUPO_WHATSAPP;
+  if(!link){
+    mostrarToast('Falta configurar el link del grupo en config.js');
+    return;
+  }
+  window.open(link, '_blank');
+}
+</script>
+</body>
+</html>
