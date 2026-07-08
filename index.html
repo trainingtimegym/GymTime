@@ -141,6 +141,24 @@
 
   .config-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
   .config-monto-actual{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--accent);margin:8px 0 20px;}
+
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;}
+  .stat-card .stat-label{font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;font-weight:600;}
+  .stat-card .stat-valor{font-family:'Bebas Neue',sans-serif;font-size:30px;margin-top:4px;color:var(--accent);}
+  .stat-card.full{grid-column:1 / -1;}
+
+  .semaforo-dist{display:flex;height:22px;border-radius:8px;overflow:hidden;margin:10px 0;}
+  .semaforo-dist > div{display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#121417;}
+  .semaforo-leyenda{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:12px;color:var(--text-secondary);}
+  .semaforo-leyenda span{display:inline-flex;align-items:center;gap:5px;}
+  .semaforo-leyenda .punto{width:9px;height:9px;border-radius:50%;display:inline-block;}
+
+  .bar-chart{display:flex;align-items:flex-end;gap:8px;height:140px;margin-top:10px;}
+  .bar-chart .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;}
+  .bar-chart .bar-fill{width:100%;background:var(--accent);border-radius:4px 4px 0 0;min-height:3px;}
+  .bar-chart .bar-label{font-size:10px;color:var(--text-secondary);margin-top:6px;}
+  .bar-chart .bar-monto{font-size:9px;color:var(--text-muted);margin-bottom:4px;}
 </style>
 </head>
 <body>
@@ -168,6 +186,7 @@
     <button class="activo" data-tab="buscar" onclick="cambiarTab('buscar')">Buscar</button>
     <button data-tab="alta" onclick="cambiarTab('alta')">Alta rápida</button>
     <button data-tab="recordatorios" onclick="cambiarTab('recordatorios')">Recordatorios</button>
+    <button data-tab="dashboard" onclick="cambiarTab('dashboard')">Dashboard</button>
     <button data-tab="config" onclick="cambiarTab('config')">Config</button>
   </nav>
 
@@ -206,6 +225,12 @@
         <button class="secundario wa-btn" onclick="abrirGrupoWhatsapp()">Abrir grupo</button>
       </div>
       <div id="listaRecordatorios"></div>
+    </section>
+
+    <section id="tab-dashboard" class="oculto">
+      <div id="dashboardContenido">
+        <div class="vacio">Cargando estadísticas...</div>
+      </div>
     </section>
 
     <section id="tab-config" class="oculto">
@@ -261,6 +286,7 @@ function cambiarTab(tab){
   document.querySelectorAll('main section').forEach(s => s.classList.add('oculto'));
   document.getElementById('tab-' + tab).classList.remove('oculto');
   if(tab === 'recordatorios') cargarRecordatorios();
+  if(tab === 'dashboard') cargarDashboard();
   if(tab === 'config') cargarConfiguracion();
 }
 
@@ -439,6 +465,70 @@ function abrirGrupoWhatsapp(){
     return;
   }
   window.open(link, '_blank');
+}
+
+async function cargarDashboard(){
+  const cont = document.getElementById('dashboardContenido');
+  cont.innerHTML = '<div class="vacio">Cargando estadísticas...</div>';
+  const d = await llamarApi('obtenerEstadisticas', {});
+
+  const sem = d.semaforo;
+  const totalActivos = d.activos || 1; // evitar división por cero
+  const pct = (n) => Math.round((n / totalActivos) * 100);
+
+  const maxIngreso = Math.max(...d.ingresosPorMes.map(m => m.total), 1);
+
+  cont.innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Ingresos este mes</div>
+        <div class="stat-valor">$${Number(d.ingresosMes).toLocaleString('es-AR')}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">% en riesgo de baja</div>
+        <div class="stat-valor" style="color:${d.porcentajeMorosidad > 30 ? 'var(--rojo)' : 'var(--verde)'}">${d.porcentajeMorosidad}%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Socios activos</div>
+        <div class="stat-valor">${d.activos}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pausados / Bajas</div>
+        <div class="stat-valor">${d.pausados} / ${d.bajas}</div>
+      </div>
+
+      <div class="stat-card full">
+        <div class="stat-label">Estado de pagos (sobre socios activos)</div>
+        <div class="semaforo-dist">
+          ${sem.verde ? `<div style="width:${pct(sem.verde)}%;background:var(--verde)">${sem.verde}</div>` : ''}
+          ${sem.amarillo ? `<div style="width:${pct(sem.amarillo)}%;background:var(--amarillo)">${sem.amarillo}</div>` : ''}
+          ${sem.rojo ? `<div style="width:${pct(sem.rojo)}%;background:var(--rojo)">${sem.rojo}</div>` : ''}
+          ${sem.vencido ? `<div style="width:${pct(sem.vencido)}%;background:var(--vencido)">${sem.vencido}</div>` : ''}
+          ${sem.sinPagos ? `<div style="width:${pct(sem.sinPagos)}%;background:var(--text-muted)">${sem.sinPagos}</div>` : ''}
+        </div>
+        <div class="semaforo-leyenda">
+          <span><span class="punto" style="background:var(--verde)"></span>Al día (${sem.verde})</span>
+          <span><span class="punto" style="background:var(--amarillo)"></span>Se acerca (${sem.amarillo})</span>
+          <span><span class="punto" style="background:var(--rojo)"></span>Últimos días (${sem.rojo})</span>
+          <span><span class="punto" style="background:var(--vencido)"></span>Vencido (${sem.vencido})</span>
+          ${sem.sinPagos ? `<span><span class="punto" style="background:var(--text-muted)"></span>Sin pagos (${sem.sinPagos})</span>` : ''}
+        </div>
+      </div>
+
+      <div class="stat-card full">
+        <div class="stat-label">Ingresos últimos 6 meses</div>
+        <div class="bar-chart">
+          ${d.ingresosPorMes.map(m => `
+            <div class="bar-col">
+              <div class="bar-monto">${m.total > 0 ? '$' + Math.round(m.total/1000) + 'k' : ''}</div>
+              <div class="bar-fill" style="height:${Math.max((m.total / maxIngreso) * 100, 2)}%"></div>
+              <div class="bar-label">${m.mes}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
 }
 </script>
 </body>
