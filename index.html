@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{
     --bg-page:#121417;
@@ -188,6 +189,7 @@
     <button class="activo" data-tab="buscar" onclick="cambiarTab('buscar')">🔍 Buscar</button>
     <button data-tab="alta" onclick="cambiarTab('alta')">➕ Alta rápida</button>
     <button data-tab="importar" onclick="cambiarTab('importar')">📥 Importar</button>
+    <button data-tab="rutinas" onclick="cambiarTab('rutinas')">💪 Rutinas</button>
     <button class="grupo-inicio" data-tab="recordatorios" onclick="cambiarTab('recordatorios')">🔔 Recordatorios</button>
     <button data-tab="dashboard" onclick="cambiarTab('dashboard')">📊 Panel</button>
     <button class="grupo-inicio" data-tab="config" onclick="cambiarTab('config')">⚙️ Config</button>
@@ -213,6 +215,32 @@
       <input id="altaCelular" inputmode="numeric" placeholder="Ej: 3482123456">
       <p class="card-sub" style="margin-top:14px;">Se carga automático con el plan Mensual configurado.</p>
       <button class="primario" onclick="darAlta()">Cargar socio</button>
+    </section>
+
+    <section id="tab-rutinas" class="oculto">
+      <div class="buscador">
+        <input id="inputBusquedaRutina" placeholder="DNI, celular o nombre del socio..." autocomplete="off">
+        <button onclick="buscarParaRutina()">Buscar</button>
+      </div>
+      <div id="resultadosBusquedaRutina"></div>
+
+      <div id="editorRutina" class="oculto" style="margin-top:16px;">
+        <div class="card">
+          <div class="card-nombre" id="rutinaNombreSocio"></div>
+          <div class="card-sub" id="rutinaUltimaActualizacion"></div>
+
+          <label>Objetivo</label>
+          <input id="rutinaObjetivo" placeholder="Ej: Hipertrofia, bajar grasa, fuerza...">
+
+          <label>Rutina (ejercicios, series, días)</label>
+          <textarea id="rutinaContenido" rows="10" style="width:100%;background:var(--surface-2);border:1px solid var(--border);color:var(--text-primary);padding:12px 14px;border-radius:10px;font-family:'Inter',sans-serif;font-size:14px;resize:vertical;" placeholder="Día 1 - Pecho y tríceps&#10;- Press banca 4x10&#10;- Fondos 3x12&#10;...&#10;&#10;Día 2 - Espalda y bíceps&#10;..."></textarea>
+
+          <div class="fila-2" style="margin-top:16px;">
+            <button class="secundario" onclick="guardarRutinaActual()">💾 Guardar rutina</button>
+            <button class="secundario wa-btn" onclick="generarPDFRutina()">📄 Generar y compartir PDF</button>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section id="tab-importar" class="oculto">
@@ -528,6 +556,126 @@ function copiarMensajeGrupal(){
   navigator.clipboard.writeText(texto).then(() => mostrarToast('Mensaje copiado, pegalo en el grupo'));
 }
 
+// ---------- RUTINAS ----------
+let socioRutinaActual = null;
+
+async function buscarParaRutina(){
+  const q = document.getElementById('inputBusquedaRutina').value.trim();
+  const cont = document.getElementById('resultadosBusquedaRutina');
+  if(!q){ cont.innerHTML = ''; return; }
+  cont.innerHTML = '<div class="vacio">Buscando...</div>';
+  const r = await llamarApi('buscarSocio', {query: q});
+  cont.innerHTML = '';
+  if(!r.resultados || r.resultados.length === 0){
+    cont.innerHTML = '<div class="vacio">No se encontraron socios.</div>';
+    document.getElementById('editorRutina').classList.add('oculto');
+    return;
+  }
+  r.resultados.forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.style.cursor = 'pointer';
+    div.innerHTML = `<div class="card-nombre">${s.nombre} ${s.apellido}</div><div class="card-sub">DNI ${s.dni}${s.celular ? ' · ' + s.celular : ''}</div>`;
+    div.onclick = () => seleccionarSocioParaRutina(s);
+    cont.appendChild(div);
+  });
+}
+
+async function seleccionarSocioParaRutina(s){
+  socioRutinaActual = s;
+  document.getElementById('resultadosBusquedaRutina').innerHTML = '';
+  document.getElementById('inputBusquedaRutina').value = `${s.nombre} ${s.apellido}`;
+  document.getElementById('editorRutina').classList.remove('oculto');
+  document.getElementById('rutinaNombreSocio').textContent = `${s.nombre} ${s.apellido}`;
+  document.getElementById('rutinaUltimaActualizacion').textContent = 'Cargando rutina...';
+  document.getElementById('rutinaObjetivo').value = '';
+  document.getElementById('rutinaContenido').value = '';
+
+  const r = await llamarApi('obtenerRutina', {dni: s.dni});
+  if(r.existe){
+    document.getElementById('rutinaObjetivo').value = r.objetivo;
+    document.getElementById('rutinaContenido').value = r.contenido;
+    document.getElementById('rutinaUltimaActualizacion').textContent = 'Última actualización: ' + r.fechaActualizacion;
+  } else {
+    document.getElementById('rutinaUltimaActualizacion').textContent = 'Todavía no tiene una rutina cargada';
+  }
+}
+
+async function guardarRutinaActual(){
+  if(!socioRutinaActual) return;
+  const datos = {
+    dni: socioRutinaActual.dni,
+    objetivo: document.getElementById('rutinaObjetivo').value.trim(),
+    contenido: document.getElementById('rutinaContenido').value.trim()
+  };
+  const r = await llamarApi('guardarRutina', {datos: JSON.stringify(datos)});
+  if(r.ok) mostrarToast('Rutina guardada ✓');
+}
+
+async function generarPDFRutina(){
+  if(!socioRutinaActual) return;
+  const objetivo = document.getElementById('rutinaObjetivo').value.trim();
+  const contenido = document.getElementById('rutinaContenido').value.trim();
+  if(!contenido){
+    mostrarToast('Escribí la rutina antes de generar el PDF');
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const nombreCompleto = `${socioRutinaActual.nombre} ${socioRutinaActual.apellido}`;
+  const hoy = new Date().toLocaleDateString('es-AR');
+
+  try{
+    const logoImg = await cargarImagenComoBase64('logo.png');
+    doc.addImage(logoImg, 'PNG', 20, 12, 22, 22);
+  }catch(e){ /* si no carga el logo, seguimos sin él */ }
+
+  doc.setFontSize(18);
+  doc.text((CONFIG.NOMBRE_GIMNASIO || 'TRAINING TIME').toUpperCase(), 48, 22);
+  doc.setFontSize(12);
+  doc.text('Rutina de entrenamiento', 48, 30);
+
+  doc.setDrawColor(200);
+  doc.line(20, 40, 190, 40);
+
+  doc.setFontSize(11);
+  doc.text(`Socio: ${nombreCompleto}`, 20, 50);
+  doc.text(`Objetivo: ${objetivo || '-'}`, 20, 57);
+  doc.text(`Fecha: ${hoy}`, 20, 64);
+
+  doc.setFontSize(11);
+  const lineas = doc.splitTextToSize(contenido, 170);
+  doc.text(lineas, 20, 76);
+
+  const blob = doc.output('blob');
+  const nombreArchivo = `rutina_${nombreCompleto.replace(/\s+/g,'_')}.pdf`;
+  const file = new File([blob], nombreArchivo, {type:'application/pdf'});
+
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{
+      await navigator.share({files:[file], title:'Rutina de entrenamiento', text:`Rutina para ${nombreCompleto}`});
+      return;
+    }catch(e){ /* el usuario canceló el share, seguimos al fallback */ }
+  }
+  doc.save(nombreArchivo);
+  mostrarToast('PDF descargado, compartilo por WhatsApp manualmente');
+}
+
+function cargarImagenComoBase64(url){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width; canvas.height = img.height;
+      canvas.getContext('2d').drawImage(img, 0, 0);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
 // ---------- IMPORTAR DESDE EXCEL ----------
 let filasImportar = [];
 
