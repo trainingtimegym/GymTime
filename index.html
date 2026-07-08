@@ -215,11 +215,11 @@
     </section>
 
     <section id="tab-importar" class="oculto">
-      <p class="card-sub" style="margin-bottom:14px;">Subí un Excel con columnas <strong>Nombre</strong>, <strong>Apellido</strong> y <strong>Teléfono</strong> (el orden y mayúsculas no importan, el sistema detecta las columnas solo).</p>
+      <p class="card-sub" style="margin-bottom:14px;">Subí un Excel con columnas <strong>Nombre</strong>, <strong>Apellido</strong>, y si las tenés, <strong>Teléfono</strong>, <strong>Monto</strong> y <strong>Fecha de pago</strong> (el sistema detecta las columnas solo, no importa el orden).</p>
       <input type="file" id="inputArchivoExcel" accept=".xlsx,.xls,.csv" onchange="manejarArchivoExcel(event)">
       <div id="previewImportar" style="margin-top:16px;"></div>
       <button class="primario oculto" id="btnConfirmarImportar" onclick="confirmarImportarMasivo()">Confirmar importación</button>
-      <p class="card-sub" style="margin-top:14px;">Cada socio importado queda cargado con: alta hoy, plan mensual configurado, estado Activo, y vencimiento a 30 días desde hoy (como si hubiese pagado hoy). Si no tiene teléfono, se le asigna un ID temporal — convendría completar el DNI real más adelante desde "Buscar".</p>
+      <p class="card-sub" style="margin-top:14px;">Si el Excel trae fecha y monto de pago, cada socio queda con SU vencimiento real (fecha que pagó + 30 días) y se guarda además en el historial de pagos. Si no trae esos datos, se asume que pagó hoy con el monto de cuota configurado. Si no tiene teléfono, se le asigna un ID temporal.</p>
     </section>
 
     <section id="tab-recordatorios" class="oculto">
@@ -370,6 +370,21 @@ function renderSocioCard(s, contenedor){
       <button class="secundario" onclick="toggleFormPago('${s.dni}')">💳 Registrar pago</button>
       ${s.linkWhatsapp ? `<button class="secundario wa-btn" onclick="window.open('${s.linkWhatsapp}','_blank')">WhatsApp</button>` : ''}
     </div>
+    <div class="card-acciones" style="margin-top:8px;">
+      <button class="secundario" onclick="toggleFormEditar('${s.dni}')">✏️ Editar datos</button>
+    </div>
+
+    <div class="form-pago oculto" id="formEditar-${s.dni}">
+      <label>Nombre</label>
+      <input id="editNombre-${s.dni}" value="${s.nombre}">
+      <label>Apellido</label>
+      <input id="editApellido-${s.dni}" value="${s.apellido}">
+      <label>Celular</label>
+      <input id="editCelular-${s.dni}" value="${s.celular}" inputmode="numeric">
+      <label>Notas</label>
+      <input id="editNotas-${s.dni}" value="${s.notas || ''}">
+      <button class="primario" onclick="confirmarEdicion('${s.dni}')">Guardar cambios</button>
+    </div>
 
     <div class="form-pago oculto" id="formPago-${s.dni}">
       <div class="fila-2">
@@ -401,6 +416,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function toggleFormPago(dni){
   document.getElementById('formPago-' + dni).classList.toggle('oculto');
+}
+
+function toggleFormEditar(dni){
+  document.getElementById('formEditar-' + dni).classList.toggle('oculto');
+}
+
+async function confirmarEdicion(dni){
+  const datos = {
+    dni,
+    nombre: document.getElementById('editNombre-' + dni).value.trim(),
+    apellido: document.getElementById('editApellido-' + dni).value.trim(),
+    celular: document.getElementById('editCelular-' + dni).value.trim(),
+    notas: document.getElementById('editNotas-' + dni).value.trim()
+  };
+  const r = await llamarApi('editarSocio', {datos: JSON.stringify(datos)});
+  if(r.ok){
+    mostrarToast('Datos actualizados ✓');
+    buscar();
+  } else {
+    mostrarToast('Error: ' + (r.error || 'no se pudo guardar'));
+  }
 }
 
 async function confirmarPago(dni){
@@ -480,7 +516,7 @@ function manejarArchivoExcel(e){
   reader.onload = function(evt){
     try{
       const data = new Uint8Array(evt.target.result);
-      const wb = XLSX.read(data, {type:'array'});
+      const wb = XLSX.read(data, {type:'array', cellDates:true});
       const ws = wb.Sheets[wb.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
       procesarFilasExcel(rows);
@@ -496,12 +532,47 @@ function normalizarHeader(txt){
   return (txt || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
 }
 
+// Convierte lo que venga en la celda (Date real, texto dd/mm/aaaa, dd/mm, o solo un número de día) a 'YYYY-MM-DD'
+function parsearFechaCelda(valor){
+  if(!valor && valor !== 0) return null;
+  if(valor instanceof Date && !isNaN(valor.getTime())){
+    return valor.toISOString().slice(0,10);
+  }
+  const txt = valor.toString().trim();
+  if(!txt) return null;
+
+  // dd/mm/aaaa o dd-mm-aaaa
+  let m = txt.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if(m){
+    let [, d, mo, y] = m;
+    if(y.length === 2) y = '20' + y;
+    const f = new Date(Number(y), Number(mo)-1, Number(d));
+    if(!isNaN(f.getTime())) return f.toISOString().slice(0,10);
+  }
+  // dd/mm (sin año, asumimos año actual)
+  m = txt.match(/^(\d{1,2})[\/\-](\d{1,2})$/);
+  if(m){
+    const [, d, mo] = m;
+    const f = new Date(new Date().getFullYear(), Number(mo)-1, Number(d));
+    if(!isNaN(f.getTime())) return f.toISOString().slice(0,10);
+  }
+  // solo un número de día (1-31), asumimos mes y año actual
+  if(/^\d{1,2}$/.test(txt) && Number(txt) >= 1 && Number(txt) <= 31){
+    const hoy = new Date();
+    const f = new Date(hoy.getFullYear(), hoy.getMonth(), Number(txt));
+    return f.toISOString().slice(0,10);
+  }
+  return null;
+}
+
 function procesarFilasExcel(rows){
   if(!rows || rows.length < 2){ mostrarToast('El archivo está vacío'); return; }
   const headers = rows[0].map(normalizarHeader);
   const idxNombre = headers.findIndex(h => h.includes('nombre'));
   const idxApellido = headers.findIndex(h => h.includes('apellido'));
   const idxCelular = headers.findIndex(h => h.includes('telefono') || h.includes('celular') || h.includes('tel'));
+  const idxMonto = headers.findIndex(h => h.includes('monto') || h.includes('precio') || h.includes('pago') && h.includes('$'));
+  const idxFecha = headers.findIndex(h => h.includes('fecha') || h.includes('dia') || h.includes('día'));
 
   if(idxNombre === -1){
     mostrarToast('No encontré una columna "Nombre" en el archivo');
@@ -514,10 +585,13 @@ function procesarFilasExcel(rows){
     if(!fila || fila.length === 0) continue;
     const nombre = (fila[idxNombre] || '').toString().trim();
     if(!nombre) continue;
+    const fechaPago = idxFecha > -1 ? parsearFechaCelda(fila[idxFecha]) : null;
     filasImportar.push({
       nombre,
       apellido: idxApellido > -1 ? (fila[idxApellido] || '').toString().trim() : '',
-      celular: idxCelular > -1 ? (fila[idxCelular] || '').toString().trim() : ''
+      celular: idxCelular > -1 ? (fila[idxCelular] || '').toString().trim() : '',
+      monto: idxMonto > -1 ? (fila[idxMonto] || '').toString().trim() : '',
+      fechaPago
     });
   }
   renderPreviewImportar();
@@ -534,7 +608,8 @@ function renderPreviewImportar(){
   let html = `<p class="card-sub" style="margin-bottom:10px;">Se detectaron <strong>${filasImportar.length}</strong> socios. Revisá antes de importar:</p>`;
   html += '<div class="card" style="max-height:280px;overflow-y:auto;">';
   filasImportar.slice(0, 50).forEach(f => {
-    html += `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;">${f.nombre} ${f.apellido}${f.celular ? ' · ' + f.celular : ''}</div>`;
+    const extra = [f.celular, f.monto ? '$'+f.monto : '', f.fechaPago ? 'pagó '+f.fechaPago : ''].filter(Boolean).join(' · ');
+    html += `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;">${f.nombre} ${f.apellido}${extra ? ' · ' + extra : ''}</div>`;
   });
   if(filasImportar.length > 50) html += `<div class="card-sub" style="padding-top:8px;">... y ${filasImportar.length - 50} más</div>`;
   html += '</div>';
