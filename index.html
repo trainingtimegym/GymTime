@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root{
     --bg-page:#121417;
@@ -185,6 +186,7 @@
   <nav class="tabs">
     <button class="activo" data-tab="buscar" onclick="cambiarTab('buscar')">Buscar</button>
     <button data-tab="alta" onclick="cambiarTab('alta')">Alta rápida</button>
+    <button data-tab="importar" onclick="cambiarTab('importar')">Importar</button>
     <button data-tab="recordatorios" onclick="cambiarTab('recordatorios')">Recordatorios</button>
     <button data-tab="dashboard" onclick="cambiarTab('dashboard')">Dashboard</button>
     <button data-tab="config" onclick="cambiarTab('config')">Config</button>
@@ -212,11 +214,19 @@
       <button class="primario" onclick="darAlta()">Cargar socio</button>
     </section>
 
+    <section id="tab-importar" class="oculto">
+      <p class="card-sub" style="margin-bottom:14px;">Subí un Excel con columnas <strong>Nombre</strong>, <strong>Apellido</strong> y <strong>Teléfono</strong> (el orden y mayúsculas no importan, el sistema detecta las columnas solo).</p>
+      <input type="file" id="inputArchivoExcel" accept=".xlsx,.xls,.csv" onchange="manejarArchivoExcel(event)">
+      <div id="previewImportar" style="margin-top:16px;"></div>
+      <button class="primario oculto" id="btnConfirmarImportar" onclick="confirmarImportarMasivo()">Confirmar importación</button>
+      <p class="card-sub" style="margin-top:14px;">Cada socio importado queda cargado con: alta hoy, plan mensual configurado, estado Activo, y vencimiento a 30 días desde hoy (como si hubiese pagado hoy). Si no tiene teléfono, se le asigna un ID temporal — convendría completar el DNI real más adelante desde "Buscar".</p>
+    </section>
+
     <section id="tab-recordatorios" class="oculto">
       <div class="recordatorio-header">
         <div>
           <div class="dias-num" id="cantidadMorosos">-</div>
-          <div class="card-sub">socios en rojo o vencidos</div>
+          <div class="card-sub">en rojo o vencidos (ordenados por urgencia abajo)</div>
         </div>
         <button class="secundario" style="width:auto;padding:10px 16px;" onclick="cargarRecordatorios()">Actualizar</button>
       </div>
@@ -439,23 +449,123 @@ async function cargarRecordatorios(){
   cont.innerHTML = '<div class="vacio">Cargando...</div>';
   const r = await llamarApi('listarPorVencer', {});
   ultimosMorosos = r.resultados || [];
-  document.getElementById('cantidadMorosos').textContent = ultimosMorosos.length;
+  const urgentes = ultimosMorosos.filter(s => s.colorSemaforo === 'rojo' || s.colorSemaforo === 'vencido');
+  document.getElementById('cantidadMorosos').textContent = urgentes.length;
   cont.innerHTML = '';
   if(ultimosMorosos.length === 0){
-    cont.innerHTML = '<div class="vacio">Nadie está por vencer ni vencido. Todo al día 🎉</div>';
+    cont.innerHTML = '<div class="vacio">No hay socios activos todavía.</div>';
     return;
   }
   ultimosMorosos.forEach(s => renderSocioCard(s, cont));
 }
 
 function copiarMensajeGrupal(){
-  if(ultimosMorosos.length === 0){
-    mostrarToast('No hay morosos para armar el mensaje');
+  const urgentes = ultimosMorosos.filter(s => s.colorSemaforo === 'rojo' || s.colorSemaforo === 'vencido');
+  if(urgentes.length === 0){
+    mostrarToast('No hay nadie en rojo o vencido para armar el mensaje');
     return;
   }
-  const nombres = ultimosMorosos.map(s => `- ${s.nombre} ${s.apellido} (${s.diasRestantes < 0 ? 'vencido' : s.diasRestantes + ' días'})`).join('\\n');
+  const nombres = urgentes.map(s => `- ${s.nombre} ${s.apellido} (${s.diasRestantes < 0 ? 'vencido' : s.diasRestantes + ' días'})`).join('\\n');
   const texto = `Recordatorio de pagos pendientes:\\n\\n${nombres}\\n\\n¡Los esperamos para renovar!`;
   navigator.clipboard.writeText(texto).then(() => mostrarToast('Mensaje copiado, pegalo en el grupo'));
+}
+
+// ---------- IMPORTAR DESDE EXCEL ----------
+let filasImportar = [];
+
+function manejarArchivoExcel(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt){
+    try{
+      const data = new Uint8Array(evt.target.result);
+      const wb = XLSX.read(data, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      procesarFilasExcel(rows);
+    }catch(err){
+      mostrarToast('No se pudo leer el archivo');
+      console.error(err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function normalizarHeader(txt){
+  return (txt || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+}
+
+function procesarFilasExcel(rows){
+  if(!rows || rows.length < 2){ mostrarToast('El archivo está vacío'); return; }
+  const headers = rows[0].map(normalizarHeader);
+  const idxNombre = headers.findIndex(h => h.includes('nombre'));
+  const idxApellido = headers.findIndex(h => h.includes('apellido'));
+  const idxCelular = headers.findIndex(h => h.includes('telefono') || h.includes('celular') || h.includes('tel'));
+
+  if(idxNombre === -1){
+    mostrarToast('No encontré una columna "Nombre" en el archivo');
+    return;
+  }
+
+  filasImportar = [];
+  for(let i = 1; i < rows.length; i++){
+    const fila = rows[i];
+    if(!fila || fila.length === 0) continue;
+    const nombre = (fila[idxNombre] || '').toString().trim();
+    if(!nombre) continue;
+    filasImportar.push({
+      nombre,
+      apellido: idxApellido > -1 ? (fila[idxApellido] || '').toString().trim() : '',
+      celular: idxCelular > -1 ? (fila[idxCelular] || '').toString().trim() : ''
+    });
+  }
+  renderPreviewImportar();
+}
+
+function renderPreviewImportar(){
+  const cont = document.getElementById('previewImportar');
+  const btn = document.getElementById('btnConfirmarImportar');
+  if(filasImportar.length === 0){
+    cont.innerHTML = '<div class="vacio">No se encontraron filas válidas</div>';
+    btn.classList.add('oculto');
+    return;
+  }
+  let html = `<p class="card-sub" style="margin-bottom:10px;">Se detectaron <strong>${filasImportar.length}</strong> socios. Revisá antes de importar:</p>`;
+  html += '<div class="card" style="max-height:280px;overflow-y:auto;">';
+  filasImportar.slice(0, 50).forEach(f => {
+    html += `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;">${f.nombre} ${f.apellido}${f.celular ? ' · ' + f.celular : ''}</div>`;
+  });
+  if(filasImportar.length > 50) html += `<div class="card-sub" style="padding-top:8px;">... y ${filasImportar.length - 50} más</div>`;
+  html += '</div>';
+  cont.innerHTML = html;
+  btn.textContent = `Confirmar importación de ${filasImportar.length} socios`;
+  btn.classList.remove('oculto');
+}
+
+async function confirmarImportarMasivo(){
+  if(filasImportar.length === 0) return;
+  mostrarToast('Importando socios, un momento...');
+  try{
+    const res = await fetch(CONFIG.API_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain;charset=utf-8'},
+      body: JSON.stringify({ accion: 'importarMasivo', datos: JSON.stringify(filasImportar) })
+    });
+    const r = await res.json();
+    if(r.ok){
+      mostrarToast(`Importados: ${r.importados}. Omitidos (duplicados): ${r.omitidos}`);
+      filasImportar = [];
+      document.getElementById('previewImportar').innerHTML = '';
+      document.getElementById('btnConfirmarImportar').classList.add('oculto');
+      document.getElementById('inputArchivoExcel').value = '';
+    } else {
+      mostrarToast('Error: ' + (r.error || 'no se pudo importar'));
+    }
+  }catch(err){
+    mostrarToast('Error de conexión al importar');
+    console.error(err);
+  }
 }
 
 function abrirGrupoWhatsapp(){
