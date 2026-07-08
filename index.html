@@ -721,7 +721,7 @@ async function construirPDFRutina(){
   const hoy = new Date().toLocaleDateString('es-AR');
 
   try{
-    const logoImg = await cargarImagenComoBase64('logo.png');
+    const logoImg = await cargarImagenComoBase64('logo-pdf.png');
     doc.addImage(logoImg, 'PNG', 20, 10, 20, 20);
   }catch(e){ /* si no carga el logo, seguimos sin él */ }
 
