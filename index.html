@@ -71,6 +71,7 @@
     padding:10px 4px;border-radius:9px;cursor:pointer;transition:all .15s;white-space:nowrap;
   }
   nav.tabs button.activo{background:var(--accent);color:var(--accent-dark);}
+  nav.tabs button.grupo-inicio{border-left:1px solid var(--border);margin-left:4px;padding-left:10px;}
 
   input, select{
     width:100%;background:var(--surface-2);border:1px solid var(--border);
@@ -184,12 +185,12 @@
   </header>
 
   <nav class="tabs">
-    <button class="activo" data-tab="buscar" onclick="cambiarTab('buscar')">Buscar</button>
-    <button data-tab="alta" onclick="cambiarTab('alta')">Alta rápida</button>
-    <button data-tab="importar" onclick="cambiarTab('importar')">Importar</button>
-    <button data-tab="recordatorios" onclick="cambiarTab('recordatorios')">Recordatorios</button>
-    <button data-tab="dashboard" onclick="cambiarTab('dashboard')">Dashboard</button>
-    <button data-tab="config" onclick="cambiarTab('config')">Config</button>
+    <button class="activo" data-tab="buscar" onclick="cambiarTab('buscar')">🔍 Buscar</button>
+    <button data-tab="alta" onclick="cambiarTab('alta')">➕ Alta rápida</button>
+    <button data-tab="importar" onclick="cambiarTab('importar')">📥 Importar</button>
+    <button class="grupo-inicio" data-tab="recordatorios" onclick="cambiarTab('recordatorios')">🔔 Recordatorios</button>
+    <button data-tab="dashboard" onclick="cambiarTab('dashboard')">📊 Panel</button>
+    <button class="grupo-inicio" data-tab="config" onclick="cambiarTab('config')">⚙️ Config</button>
   </nav>
 
   <main>
