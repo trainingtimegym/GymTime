@@ -250,7 +250,10 @@
 
         <div class="fila-2" style="margin-top:16px;">
           <button class="secundario" onclick="guardarRutinaActual()">💾 Guardar rutina</button>
-          <button class="secundario wa-btn" onclick="generarPDFRutina()">📄 Generar y compartir PDF</button>
+        </div>
+        <div class="fila-2" style="margin-top:8px;">
+          <button class="secundario" onclick="descargarPDFRutina()">⬇️ Descargar PDF</button>
+          <button class="secundario wa-btn" onclick="generarPDFRutina()">📄 Compartir PDF</button>
         </div>
       </div>
     </section>
@@ -710,15 +713,8 @@ async function guardarRutinaActual(){
   if(r.ok) mostrarToast('Rutina guardada ✓');
 }
 
-async function generarPDFRutina(){
-  if(!socioRutinaActual) return;
+async function construirPDFRutina(){
   const objetivo = document.getElementById('rutinaObjetivo').value.trim();
-  const hayContenido = diasRutina.some(d => d.ejercicios.some(e => e.nombre.trim()));
-  if(!hayContenido){
-    mostrarToast('Cargá al menos un ejercicio antes de generar el PDF');
-    return;
-  }
-
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   const nombreCompleto = `${socioRutinaActual.nombre} ${socioRutinaActual.apellido}`;
@@ -770,8 +766,31 @@ async function generarPDFRutina(){
     if(y > 260){ doc.addPage(); y = 20; }
   });
 
+  return { doc, nombreArchivo: `rutina_${nombreCompleto.replace(/\s+/g,'_')}.pdf` };
+}
+
+async function descargarPDFRutina(){
+  if(!socioRutinaActual) return;
+  const hayContenido = diasRutina.some(d => d.ejercicios.some(e => e.nombre.trim()));
+  if(!hayContenido){
+    mostrarToast('Cargá al menos un ejercicio antes de generar el PDF');
+    return;
+  }
+  const { doc, nombreArchivo } = await construirPDFRutina();
+  doc.save(nombreArchivo);
+  mostrarToast('PDF descargado ✓');
+}
+
+async function generarPDFRutina(){
+  if(!socioRutinaActual) return;
+  const hayContenido = diasRutina.some(d => d.ejercicios.some(e => e.nombre.trim()));
+  if(!hayContenido){
+    mostrarToast('Cargá al menos un ejercicio antes de generar el PDF');
+    return;
+  }
+  const { doc, nombreArchivo } = await construirPDFRutina();
   const blob = doc.output('blob');
-  const nombreArchivo = `rutina_${nombreCompleto.replace(/\s+/g,'_')}.pdf`;
+  const nombreCompleto = `${socioRutinaActual.nombre} ${socioRutinaActual.apellido}`;
   const file = new File([blob], nombreArchivo, {type:'application/pdf'});
 
   if(navigator.canShare && navigator.canShare({files:[file]})){
