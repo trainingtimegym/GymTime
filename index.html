@@ -440,6 +440,8 @@ function renderSocioCard(s, contenedor){
         <option value="Efectivo">Efectivo</option>
         <option value="Transferencia">Transferencia</option>
       </select>
+      <label>Fecha de pago (dejar vacío = hoy)</label>
+      <input type="date" id="fechaPago-${s.dni}">
       <button class="primario" onclick="confirmarPago('${s.dni}')">Confirmar pago</button>
     </div>
   `;
@@ -507,8 +509,9 @@ async function confirmarPago(dni){
   const dias = document.getElementById('diasPago-' + dni).value;
   const monto = document.getElementById('montoPago-' + dni).value;
   const metodoPago = document.getElementById('metodoPago-' + dni).value;
+  const fechaPago = document.getElementById('fechaPago-' + dni).value; // vacío = hoy (lo maneja el backend)
 
-  const r = await llamarApi('registrarPago', {datos: JSON.stringify({ dni, monto, dias, metodoPago })});
+  const r = await llamarApi('registrarPago', {datos: JSON.stringify({ dni, monto, dias, metodoPago, fechaPago })});
 
   if(r.ok){
     mostrarToast('Pago registrado. Próximo vencimiento: ' + r.nuevoVencimiento);
