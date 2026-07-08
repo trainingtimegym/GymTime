@@ -392,6 +392,11 @@ function renderSocioCard(s, contenedor){
         <div><label>Monto ($)</label><input id="montoPago-${s.dni}" type="number" inputmode="numeric" value="${configCache.precio || ''}"></div>
         <div><label>Días</label><input id="diasPago-${s.dni}" type="number" inputmode="numeric" value="${configCache.duracionDias || 30}"></div>
       </div>
+      <label>Método de pago</label>
+      <select id="metodoPago-${s.dni}">
+        <option value="Efectivo">Efectivo</option>
+        <option value="Transferencia">Transferencia</option>
+      </select>
       <button class="primario" onclick="confirmarPago('${s.dni}')">Confirmar pago</button>
     </div>
   `;
@@ -458,8 +463,9 @@ async function confirmarEdicion(dni){
 async function confirmarPago(dni){
   const dias = document.getElementById('diasPago-' + dni).value;
   const monto = document.getElementById('montoPago-' + dni).value;
+  const metodoPago = document.getElementById('metodoPago-' + dni).value;
 
-  const r = await llamarApi('registrarPago', {datos: JSON.stringify({ dni, monto, dias })});
+  const r = await llamarApi('registrarPago', {datos: JSON.stringify({ dni, monto, dias, metodoPago })});
 
   if(r.ok){
     mostrarToast('Pago registrado. Próximo vencimiento: ' + r.nuevoVencimiento);
@@ -678,6 +684,9 @@ async function cargarDashboard(){
   const pct = (n) => Math.round((n / totalActivos) * 100);
 
   const maxIngreso = Math.max(...d.ingresosPorMes.map(m => m.total), 1);
+  const totalMetodo = (d.ingresosPorMetodo.efectivo || 0) + (d.ingresosPorMetodo.transferencia || 0);
+  const metEfectivoPct = totalMetodo > 0 ? Math.round((d.ingresosPorMetodo.efectivo / totalMetodo) * 100) : 0;
+  const metTransferenciaPct = totalMetodo > 0 ? Math.round((d.ingresosPorMetodo.transferencia / totalMetodo) * 100) : 0;
 
   cont.innerHTML = `
     <div class="stats-grid">
@@ -713,6 +722,18 @@ async function cargarDashboard(){
           <span><span class="punto" style="background:var(--rojo)"></span>Últimos días (${sem.rojo})</span>
           <span><span class="punto" style="background:var(--vencido)"></span>Vencido (${sem.vencido})</span>
           ${sem.sinPagos ? `<span><span class="punto" style="background:var(--text-muted)"></span>Sin pagos (${sem.sinPagos})</span>` : ''}
+        </div>
+      </div>
+
+      <div class="stat-card full">
+        <div class="stat-label">Efectivo vs Transferencia (este mes)</div>
+        <div class="semaforo-dist">
+          ${metEfectivoPct ? `<div style="width:${metEfectivoPct}%;background:var(--accent)">${metEfectivoPct}%</div>` : ''}
+          ${metTransferenciaPct ? `<div style="width:${metTransferenciaPct}%;background:var(--verde)">${metTransferenciaPct}%</div>` : ''}
+        </div>
+        <div class="semaforo-leyenda">
+          <span><span class="punto" style="background:var(--accent)"></span>Efectivo ($${Number(d.ingresosPorMetodo.efectivo).toLocaleString('es-AR')})</span>
+          <span><span class="punto" style="background:var(--verde)"></span>Transferencia ($${Number(d.ingresosPorMetodo.transferencia).toLocaleString('es-AR')})</span>
         </div>
       </div>
 
