@@ -398,12 +398,15 @@ function renderSocioCard(s, contenedor){
   contenedor.appendChild(div);
 }
 
+let tokenBusqueda = 0;
 async function buscar(){
   const q = document.getElementById('inputBusqueda').value.trim();
   const cont = document.getElementById('resultadosBusqueda');
   if(!q){ cont.innerHTML = ''; return; }
+  const miToken = ++tokenBusqueda;
   cont.innerHTML = '<div class="vacio">Buscando...</div>';
   const r = await llamarApi('buscarSocio', {query: q});
+  if(miToken !== tokenBusqueda) return; // llegó una respuesta vieja, se ignora
   cont.innerHTML = '';
   if(!r.resultados || r.resultados.length === 0){
     cont.innerHTML = '<div class="vacio">No se encontraron socios. Probá con otro dato o cargalo en "Alta rápida".</div>';
@@ -412,7 +415,19 @@ async function buscar(){
   r.resultados.forEach(s => renderSocioCard(s, cont));
 }
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('inputBusqueda').addEventListener('keydown', e => { if(e.key === 'Enter') buscar(); });
+  const inputBusqueda = document.getElementById('inputBusqueda');
+  let debounceTimer = null;
+  inputBusqueda.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    const q = inputBusqueda.value.trim();
+    if(q.length === 0){
+      document.getElementById('resultadosBusqueda').innerHTML = '';
+      return;
+    }
+    if(q.length < 2) return; // esperar al menos 2 caracteres
+    debounceTimer = setTimeout(() => buscar(), 400);
+  });
+  inputBusqueda.addEventListener('keydown', e => { if(e.key === 'Enter'){ clearTimeout(debounceTimer); buscar(); } });
 });
 
 function toggleFormPago(dni){
