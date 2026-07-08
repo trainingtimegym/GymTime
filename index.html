@@ -852,8 +852,16 @@ function parsearFechaCelda(valor){
   const txt = valor.toString().trim();
   if(!txt) return null;
 
+  // aaaa-mm-dd (formato ISO, el que genera Excel/Sheets normalmente)
+  let m = txt.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+  if(m){
+    const [, y, mo, d] = m;
+    const f = new Date(Number(y), Number(mo)-1, Number(d));
+    if(!isNaN(f.getTime())) return f.toISOString().slice(0,10);
+  }
+
   // dd/mm/aaaa o dd-mm-aaaa
-  let m = txt.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  m = txt.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
   if(m){
     let [, d, mo, y] = m;
     if(y.length === 2) y = '20' + y;
