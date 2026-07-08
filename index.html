@@ -419,6 +419,8 @@ function renderSocioCard(s, contenedor){
     </div>
 
     <div class="form-pago oculto" id="formEditar-${s.dni}">
+      <label>DNI ${s.dni.startsWith('TEMP') ? '(temporal, poné el real cuando lo tengas)' : ''}</label>
+      <input id="editDni-${s.dni}" value="${s.dni}" inputmode="numeric">
       <label>Nombre</label>
       <input id="editNombre-${s.dni}" value="${s.nombre}">
       <label>Apellido</label>
@@ -491,6 +493,7 @@ function toggleFormEditar(dni){
 async function confirmarEdicion(dni){
   const datos = {
     dni,
+    nuevoDni: document.getElementById('editDni-' + dni).value.trim(),
     nombre: document.getElementById('editNombre-' + dni).value.trim(),
     apellido: document.getElementById('editApellido-' + dni).value.trim(),
     celular: document.getElementById('editCelular-' + dni).value.trim(),
