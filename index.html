@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
   :root{
     --bg-page:#121417;
@@ -162,6 +163,16 @@
   .bar-chart .bar-fill{width:100%;background:var(--accent);border-radius:4px 4px 0 0;min-height:3px;}
   .bar-chart .bar-label{font-size:10px;color:var(--text-secondary);margin-top:6px;}
   .bar-chart .bar-monto{font-size:9px;color:var(--text-muted);margin-bottom:4px;}
+
+  .dia-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:14px;}
+  .dia-card-header{display:flex;gap:8px;align-items:center;margin-bottom:12px;}
+  .dia-card-header input{flex:1;font-weight:700;}
+  .dia-card-header button{background:var(--rojo-bg);color:var(--rojo);border:1px solid var(--rojo);border-radius:8px;padding:8px 10px;font-size:12px;cursor:pointer;}
+  .ejercicio-row{display:grid;grid-template-columns:2fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center;}
+  .ejercicio-row select{font-size:12px;padding:10px 8px;}
+  .ejercicio-row button{background:var(--surface-2);color:var(--text-muted);border:1px solid var(--border);border-radius:8px;padding:8px;cursor:pointer;font-size:12px;}
+  .btn-agregar-ejercicio{background:var(--surface-2);border:1px dashed var(--border);color:var(--text-secondary);border-radius:8px;padding:8px;width:100%;cursor:pointer;font-size:12px;margin-top:4px;}
+  .grupo-tag{font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;}
 </style>
 </head>
 <body>
@@ -231,14 +242,15 @@
 
           <label>Objetivo</label>
           <input id="rutinaObjetivo" placeholder="Ej: Hipertrofia, bajar grasa, fuerza...">
+        </div>
 
-          <label>Rutina (ejercicios, series, días)</label>
-          <textarea id="rutinaContenido" rows="10" style="width:100%;background:var(--surface-2);border:1px solid var(--border);color:var(--text-primary);padding:12px 14px;border-radius:10px;font-family:'Inter',sans-serif;font-size:14px;resize:vertical;" placeholder="Día 1 - Pecho y tríceps&#10;- Press banca 4x10&#10;- Fondos 3x12&#10;...&#10;&#10;Día 2 - Espalda y bíceps&#10;..."></textarea>
+        <div id="diasRutinaContainer"></div>
 
-          <div class="fila-2" style="margin-top:16px;">
-            <button class="secundario" onclick="guardarRutinaActual()">💾 Guardar rutina</button>
-            <button class="secundario wa-btn" onclick="generarPDFRutina()">📄 Generar y compartir PDF</button>
-          </div>
+        <button class="secundario" onclick="agregarDia()" style="margin-top:6px;">➕ Agregar día</button>
+
+        <div class="fila-2" style="margin-top:16px;">
+          <button class="secundario" onclick="guardarRutinaActual()">💾 Guardar rutina</button>
+          <button class="secundario wa-btn" onclick="generarPDFRutina()">📄 Generar y compartir PDF</button>
         </div>
       </div>
     </section>
@@ -558,6 +570,20 @@ function copiarMensajeGrupal(){
 
 // ---------- RUTINAS ----------
 let socioRutinaActual = null;
+let diasRutina = [];
+
+const GRUPOS_MUSCULARES = {
+  'Pecho':    { abrev: 'P',   color: [192, 57, 43]  },
+  'Espalda':  { abrev: 'E',   color: [146, 43, 33]  },
+  'Hombro':   { abrev: 'H',   color: [39, 174, 96]  },
+  'Biceps':   { abrev: 'B',   color: [41, 128, 185] },
+  'Triceps':  { abrev: 'T',   color: [230, 126, 34] },
+  'Pierna':   { abrev: 'C',   color: [231, 76, 60]  },
+  'Femoral':  { abrev: 'F',   color: [22, 160, 133] },
+  'Gemelos':  { abrev: 'G',   color: [142, 68, 173] },
+  'Abdomen':  { abrev: 'ABS', color: [44, 62, 80]   },
+  'Otro':     { abrev: '-',   color: [120, 120, 120]}
+};
 
 async function buscarParaRutina(){
   const q = document.getElementById('inputBusquedaRutina').value.trim();
@@ -589,16 +615,88 @@ async function seleccionarSocioParaRutina(s){
   document.getElementById('rutinaNombreSocio').textContent = `${s.nombre} ${s.apellido}`;
   document.getElementById('rutinaUltimaActualizacion').textContent = 'Cargando rutina...';
   document.getElementById('rutinaObjetivo').value = '';
-  document.getElementById('rutinaContenido').value = '';
+  diasRutina = [];
 
   const r = await llamarApi('obtenerRutina', {dni: s.dni});
   if(r.existe){
     document.getElementById('rutinaObjetivo').value = r.objetivo;
-    document.getElementById('rutinaContenido').value = r.contenido;
     document.getElementById('rutinaUltimaActualizacion').textContent = 'Última actualización: ' + r.fechaActualizacion;
+    try{
+      diasRutina = JSON.parse(r.contenido);
+    }catch(e){
+      // rutina vieja en formato de texto libre: la migramos a un solo día "General"
+      diasRutina = r.contenido ? [{ titulo: 'General', ejercicios: [{ nombre: r.contenido, grupo: 'Otro', series: '' }] }] : [];
+    }
   } else {
     document.getElementById('rutinaUltimaActualizacion').textContent = 'Todavía no tiene una rutina cargada';
   }
+  if(diasRutina.length === 0) agregarDia();
+  renderDiasRutina();
+}
+
+function agregarDia(){
+  diasRutina.push({ titulo: `Día ${diasRutina.length + 1}`, ejercicios: [{ nombre: '', grupo: 'Otro', series: '' }] });
+  renderDiasRutina();
+}
+
+function eliminarDia(idx){
+  diasRutina.splice(idx, 1);
+  renderDiasRutina();
+}
+
+function agregarEjercicio(diaIdx){
+  diasRutina[diaIdx].ejercicios.push({ nombre: '', grupo: 'Otro', series: '' });
+  renderDiasRutina();
+}
+
+function eliminarEjercicio(diaIdx, ejIdx){
+  diasRutina[diaIdx].ejercicios.splice(ejIdx, 1);
+  renderDiasRutina();
+}
+
+function actualizarCampoDia(diaIdx, valor){
+  diasRutina[diaIdx].titulo = valor;
+}
+function actualizarCampoEjercicio(diaIdx, ejIdx, campo, valor){
+  diasRutina[diaIdx].ejercicios[ejIdx][campo] = valor;
+}
+
+function renderDiasRutina(){
+  const cont = document.getElementById('diasRutinaContainer');
+  cont.innerHTML = '';
+  diasRutina.forEach((dia, diaIdx) => {
+    const div = document.createElement('div');
+    div.className = 'dia-card';
+    const opcionesGrupo = Object.keys(GRUPOS_MUSCULARES).map(g => `<option value="${g}">${g}</option>`).join('');
+
+    div.innerHTML = `
+      <div class="dia-card-header">
+        <input value="${dia.titulo}" oninput="actualizarCampoDia(${diaIdx}, this.value)" placeholder="Título del día, ej: Pecho, Hombro y Tríceps">
+        <button onclick="eliminarDia(${diaIdx})">🗑</button>
+      </div>
+      <div id="ejercicios-${diaIdx}"></div>
+      <button class="btn-agregar-ejercicio" onclick="agregarEjercicio(${diaIdx})">+ Agregar ejercicio</button>
+    `;
+    cont.appendChild(div);
+
+    const contEj = div.querySelector(`#ejercicios-${diaIdx}`);
+    dia.ejercicios.forEach((ej, ejIdx) => {
+      const fila = document.createElement('div');
+      fila.className = 'ejercicio-row';
+      fila.innerHTML = `
+        <input value="${ej.nombre}" placeholder="Ejercicio" oninput="actualizarCampoEjercicio(${diaIdx},${ejIdx},'nombre',this.value)">
+        <select onchange="actualizarCampoEjercicio(${diaIdx},${ejIdx},'grupo',this.value)">
+          ${Object.keys(GRUPOS_MUSCULARES).map(g => `<option value="${g}" ${g===ej.grupo?'selected':''}>${g}</option>`).join('')}
+        </select>
+        <input value="${ej.series}" placeholder="4x10" style="width:70px;" oninput="actualizarCampoEjercicio(${diaIdx},${ejIdx},'series',this.value)">
+      `;
+      const btnDel = document.createElement('button');
+      btnDel.textContent = '✕';
+      btnDel.onclick = () => eliminarEjercicio(diaIdx, ejIdx);
+      fila.appendChild(btnDel);
+      contEj.appendChild(fila);
+    });
+  });
 }
 
 async function guardarRutinaActual(){
@@ -606,7 +704,7 @@ async function guardarRutinaActual(){
   const datos = {
     dni: socioRutinaActual.dni,
     objetivo: document.getElementById('rutinaObjetivo').value.trim(),
-    contenido: document.getElementById('rutinaContenido').value.trim()
+    contenido: JSON.stringify(diasRutina)
   };
   const r = await llamarApi('guardarRutina', {datos: JSON.stringify(datos)});
   if(r.ok) mostrarToast('Rutina guardada ✓');
@@ -615,9 +713,9 @@ async function guardarRutinaActual(){
 async function generarPDFRutina(){
   if(!socioRutinaActual) return;
   const objetivo = document.getElementById('rutinaObjetivo').value.trim();
-  const contenido = document.getElementById('rutinaContenido').value.trim();
-  if(!contenido){
-    mostrarToast('Escribí la rutina antes de generar el PDF');
+  const hayContenido = diasRutina.some(d => d.ejercicios.some(e => e.nombre.trim()));
+  if(!hayContenido){
+    mostrarToast('Cargá al menos un ejercicio antes de generar el PDF');
     return;
   }
 
@@ -628,25 +726,49 @@ async function generarPDFRutina(){
 
   try{
     const logoImg = await cargarImagenComoBase64('logo.png');
-    doc.addImage(logoImg, 'PNG', 20, 12, 22, 22);
+    doc.addImage(logoImg, 'PNG', 20, 10, 20, 20);
   }catch(e){ /* si no carga el logo, seguimos sin él */ }
 
-  doc.setFontSize(18);
-  doc.text((CONFIG.NOMBRE_GIMNASIO || 'TRAINING TIME').toUpperCase(), 48, 22);
-  doc.setFontSize(12);
-  doc.text('Rutina de entrenamiento', 48, 30);
-
-  doc.setDrawColor(200);
-  doc.line(20, 40, 190, 40);
-
+  doc.setFontSize(16);
+  doc.text((CONFIG.NOMBRE_GIMNASIO || 'TRAINING TIME').toUpperCase(), 46, 18);
   doc.setFontSize(11);
-  doc.text(`Socio: ${nombreCompleto}`, 20, 50);
-  doc.text(`Objetivo: ${objetivo || '-'}`, 20, 57);
-  doc.text(`Fecha: ${hoy}`, 20, 64);
+  doc.text('Rutina de entrenamiento', 46, 25);
 
-  doc.setFontSize(11);
-  const lineas = doc.splitTextToSize(contenido, 170);
-  doc.text(lineas, 20, 76);
+  doc.setFontSize(10);
+  doc.text(`Socio: ${nombreCompleto}`, 20, 38);
+  doc.text(`Objetivo: ${objetivo || '-'}`, 20, 44);
+  doc.text(`Fecha: ${hoy}`, 20, 50);
+
+  let y = 58;
+  diasRutina.forEach(dia => {
+    const ejerciciosValidos = dia.ejercicios.filter(e => e.nombre.trim());
+    if(ejerciciosValidos.length === 0) return;
+
+    doc.setFontSize(12);
+    doc.setTextColor(20,20,20);
+    doc.text(dia.titulo.toUpperCase(), 20, y);
+    y += 4;
+
+    doc.autoTable({
+      startY: y,
+      head: [['EJERCICIO', 'SERIES X REPETICIONES']],
+      body: ejerciciosValidos.map(e => {
+        const g = GRUPOS_MUSCULARES[e.grupo] || GRUPOS_MUSCULARES['Otro'];
+        const etiqueta = g.abrev !== '-' ? ` (${g.abrev})` : '';
+        return [
+          { content: e.nombre + etiqueta, styles: { textColor: g.color, fontStyle: 'bold' } },
+          e.series || '-'
+        ];
+      }),
+      theme: 'grid',
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: [30,30,30], textColor: 255 },
+      margin: { left: 20, right: 20 }
+    });
+
+    y = doc.lastAutoTable.finalY + 12;
+    if(y > 260){ doc.addPage(); y = 20; }
+  });
 
   const blob = doc.output('blob');
   const nombreArchivo = `rutina_${nombreCompleto.replace(/\s+/g,'_')}.pdf`;
