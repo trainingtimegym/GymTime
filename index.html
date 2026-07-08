@@ -263,7 +263,7 @@
       <input type="file" id="inputArchivoExcel" accept=".xlsx,.xls,.csv" onchange="manejarArchivoExcel(event)">
       <div id="previewImportar" style="margin-top:16px;"></div>
       <button class="primario oculto" id="btnConfirmarImportar" onclick="confirmarImportarMasivo()">Confirmar importación</button>
-      <p class="card-sub" style="margin-top:14px;">Si el Excel trae fecha y monto de pago, cada socio queda con SU vencimiento real (fecha que pagó + 30 días) y se guarda además en el historial de pagos. Si no trae esos datos, se asume que pagó hoy con el monto de cuota configurado. Si no tiene teléfono, se le asigna un ID temporal.</p>
+      <p class="card-sub" style="margin-top:14px;">Si el Excel trae fecha y monto de pago, cada socio queda con SU vencimiento real (fecha que pagó + 30 días) y se guarda además en el historial de pagos. Si ya existe un socio con ese mismo nombre cargado, se actualiza su fecha de pago (solo si la nueva es más reciente que la que tenía) en vez de crear uno duplicado. Si no tiene teléfono, se le asigna un ID temporal.</p>
     </section>
 
     <section id="tab-recordatorios" class="oculto">
@@ -940,7 +940,7 @@ async function confirmarImportarMasivo(){
     });
     const r = await res.json();
     if(r.ok){
-      mostrarToast(`Importados: ${r.importados}. Omitidos (duplicados): ${r.omitidos}`);
+      mostrarToast(`Nuevos: ${r.importados} · Actualizados: ${r.actualizados} · Sin cambios: ${r.omitidos}`);
       filasImportar = [];
       document.getElementById('previewImportar').innerHTML = '';
       document.getElementById('btnConfirmarImportar').classList.add('oculto');
