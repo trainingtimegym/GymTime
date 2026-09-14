@@ -1,1 +1,1206 @@
 
+<title>Generador de Rutinas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f2efe8; --surface:#ffffff; --surface-2:#eee8da; --border:#ddd5c3;
+  --text:#221f19; --text-dim:#6b6155;
+  --accent:#b23a24; --accent-ink:#ffffff; --accent-soft:#f3ddd4;
+  --shadow: 0 1px 2px rgba(30,25,15,.06), 0 6px 16px -8px rgba(30,25,15,.14);
+
+  --g1:#b23a24; --g1-soft:#f3ddd4;
+  --g2:#a06914; --g2-soft:#f1e2c4;
+  --g3:#c2691e; --g3-soft:#f2e0c9;
+  --g4:#3f6b3a; --g4-soft:#dfe9d8;
+  --g5:#1f6e73; --g5-soft:#d8ebea;
+  --g6:#6b7a3f; --g6-soft:#e5e9d6;
+  --g7:#6a4c93; --g7-soft:#e6ddef;
+  --g8:#47578f; --g8-soft:#dde1ef;
+  --g9:#8a4f7a; --g9-soft:#ecdce8;
+  --g10:#3f6b8a; --g10-soft:#dbe6ec;
+  --gn:#6b6155; --gn-soft:#eae5db;
+  --gc:#b5476b; --gc-soft:#f2dbe3;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16171b; --surface:#1e2025; --surface-2:#26282e; --border:#34373f;
+    --text:#edeeef; --text-dim:#989ca5;
+    --accent:#ff7a52; --accent-ink:#1a1210; --accent-soft:#3a2a1f;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 24px -10px rgba(0,0,0,.5);
+
+    --g1:#ff8a6a; --g1-soft:#3a2621;
+    --g2:#e3b34d; --g2-soft:#392f18;
+    --g3:#e59a4d; --g3-soft:#3a2c18;
+    --g4:#7fbf72; --g4-soft:#1f3320;
+    --g5:#4fd2d8; --g5-soft:#1c3436;
+    --g6:#a8bf72; --g6-soft:#2c331d;
+    --g7:#b494e0; --g7-soft:#2e2740;
+    --g8:#8ea1e0; --g8-soft:#232a40;
+    --g9:#d98fc4; --g9-soft:#3a2735;
+    --g10:#7fb6d9; --g10-soft:#20333d;
+    --gn:#c3beb2; --gn-soft:#2c2a24;
+    --gc:#e87e9d; --gc-soft:#3a222b;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16171b; --surface:#1e2025; --surface-2:#26282e; --border:#34373f;
+  --text:#edeeef; --text-dim:#989ca5;
+  --accent:#ff7a52; --accent-ink:#1a1210; --accent-soft:#3a2a1f;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 24px -10px rgba(0,0,0,.5);
+
+  --g1:#ff8a6a; --g1-soft:#3a2621;
+  --g2:#e3b34d; --g2-soft:#392f18;
+  --g3:#e59a4d; --g3-soft:#3a2c18;
+  --g4:#7fbf72; --g4-soft:#1f3320;
+  --g5:#4fd2d8; --g5-soft:#1c3436;
+  --g6:#a8bf72; --g6-soft:#2c331d;
+  --g7:#b494e0; --g7-soft:#2e2740;
+  --g8:#8ea1e0; --g8-soft:#232a40;
+  --g9:#d98fc4; --g9-soft:#3a2735;
+  --g10:#7fb6d9; --g10-soft:#20333d;
+  --gn:#c3beb2; --gn-soft:#2c2a24;
+  --gc:#e87e9d; --gc-soft:#3a222b;
+}
+
+*{box-sizing:border-box;}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:"Work Sans",system-ui,sans-serif;
+  padding-inline:14px; padding-block:0 40px; line-height:1.4;
+}
+h1,h2,h3{font-family:"Oswald",sans-serif; text-wrap:balance; margin:0;}
+button, input, select, textarea{font-family:inherit; font-size:inherit; color:inherit;}
+.wrap{max-width:1180px; margin:0 auto;}
+
+/* ---------- top ---------- */
+.top{padding-block:18px 12px; display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; border-bottom:1px solid var(--border);}
+.top .brand{display:flex; flex-direction:column; gap:2px;}
+.eyebrow{font-family:"JetBrains Mono",monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-dim);}
+.top h1{font-size:clamp(22px,5vw,28px); font-weight:700;}
+.tabs{display:flex; gap:6px;}
+.tab-btn{
+  font-family:"Oswald",sans-serif; font-weight:600; font-size:13.5px; letter-spacing:.02em;
+  border:1px solid var(--border); background:var(--surface); color:var(--text-dim);
+  border-radius:999px; padding:8px 16px; cursor:pointer;
+}
+.tab-btn.active{background:var(--text); color:var(--bg); border-color:var(--text);}
+.top .actions{display:flex; gap:8px; flex-wrap:wrap;}
+.btn{
+  font-family:"Oswald",sans-serif; font-weight:600; font-size:13px; letter-spacing:.02em;
+  border:1px solid var(--border); background:var(--surface); color:var(--text);
+  border-radius:9px; padding:8px 13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;
+}
+.btn:hover{border-color:var(--text-dim);}
+.btn.primary{background:var(--accent); color:var(--accent-ink); border-color:var(--accent);}
+.btn.ghost{background:transparent;}
+.btn.small{padding:5px 9px; font-size:11.5px; border-radius:7px;}
+.btn svg{width:14px;height:14px;}
+.drive-save{display:inline-flex; align-items:center; gap:8px;}
+.btn.drive-btn{background:#2f6f4f; border-color:#2f6f4f; color:#fff;}
+.btn.drive-btn:disabled{opacity:.55; cursor:default;}
+.drive-status{font-family:"JetBrains Mono",monospace; font-size:11.5px; color:var(--text-dim); max-width:230px;}
+.drive-status.is-ok{color:#2f6f4f;}
+.drive-status.is-err{color:#b23a24;}
+.drive-status a{color:inherit; text-decoration:underline;}
+@media (prefers-color-scheme:dark){
+  .btn.drive-btn{background:#3f9a6c; border-color:#3f9a6c; color:#0e1510;}
+  .drive-status.is-ok{color:#6fd6a0;}
+  .drive-status.is-err{color:#ff7a52;}
+}
+
+/* ---------- meta form ---------- */
+.meta{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; padding-block:14px;}
+.field label{display:block; font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:var(--text-dim); margin-bottom:4px; font-weight:500;}
+.field input{
+  width:100%; border:1px solid var(--border); background:var(--surface); color:var(--text);
+  border-radius:8px; padding:8px 10px; font-size:14px;
+}
+.field input:focus{outline:2px solid var(--accent); outline-offset:1px;}
+
+/* ---------- panels ---------- */
+[hidden]{display:none!important;}
+.panel{padding-block:6px 20px;}
+
+/* ---------- days / builder ---------- */
+.day-card{
+  background:var(--surface); border:1px solid var(--border); border-radius:14px;
+  padding:14px; margin-bottom:14px; box-shadow:var(--shadow);
+}
+.day-card-head{display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap;}
+.day-card-head input.title{
+  font-family:"Oswald",sans-serif; font-weight:600; font-size:17px; letter-spacing:.01em;
+  border:none; background:transparent; color:var(--text); padding:2px 4px; border-radius:6px; min-width:90px;
+}
+.day-card-head input.focus{
+  flex:1; min-width:140px; border:1px solid var(--border); background:var(--surface-2); color:var(--text-dim);
+  font-size:13px; padding:6px 9px; border-radius:7px;
+}
+.day-card-head input:focus{outline:2px solid var(--accent); outline-offset:1px;}
+.day-tools{display:flex; gap:4px; margin-left:auto;}
+.icon-btn{
+  width:28px;height:28px; border-radius:7px; border:1px solid var(--border); background:var(--surface);
+  color:var(--text-dim); cursor:pointer; display:flex; align-items:center; justify-content:center;
+}
+.icon-btn:hover{color:var(--text); border-color:var(--text-dim);}
+.icon-btn svg{width:14px;height:14px;}
+
+.ex-row{
+  display:grid; grid-template-columns:38px 1fr auto; gap:10px; align-items:center;
+  padding:8px 6px; border-bottom:1px dashed var(--border);
+}
+.ex-row:last-of-type{border-bottom:none;}
+.ex-icon{width:36px;height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center;}
+.ex-icon svg{width:26px;height:26px;}
+.ex-info{min-width:0;}
+.ex-name{font-size:13.5px; font-weight:500; display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
+.ex-tag{
+  font-family:"JetBrains Mono",monospace; font-size:9.5px; text-transform:uppercase; letter-spacing:.03em;
+  padding:1.5px 6px; border-radius:5px; font-weight:600;
+}
+.ex-fields{display:flex; gap:6px; margin-top:5px;}
+.ex-fields input{
+  border:1px solid var(--border); background:var(--surface-2); color:var(--text);
+  border-radius:6px; padding:4px 7px; font-size:12px;
+}
+.ex-fields input.reps{width:76px; font-family:"JetBrains Mono",monospace;}
+.ex-fields input.note{flex:1; min-width:100px;}
+.ex-row-tools{display:flex; gap:3px;}
+
+.add-ex-btn{
+  width:100%; margin-top:4px; border:1.5px dashed var(--border); background:transparent; color:var(--text-dim);
+  border-radius:10px; padding:10px; cursor:pointer; font-family:"Oswald",sans-serif; font-weight:600; font-size:13px;
+}
+.add-ex-btn:hover{border-color:var(--accent); color:var(--accent);}
+
+.add-day-btn{
+  width:100%; border:1.5px dashed var(--border); background:transparent; color:var(--text-dim);
+  border-radius:14px; padding:16px; cursor:pointer; font-family:"Oswald",sans-serif; font-weight:600; font-size:14.5px;
+}
+.add-day-btn:hover{border-color:var(--accent); color:var(--accent);}
+
+/* ---------- exercise picker (drawer) ---------- */
+.picker-backdrop{position:fixed; inset:0; background:rgba(20,16,10,.45); z-index:40; display:flex; align-items:flex-end; justify-content:center;}
+@media(min-width:640px){ .picker-backdrop{align-items:center;} }
+.picker{
+  background:var(--bg); border:1px solid var(--border); width:100%; max-width:640px; max-height:82vh;
+  border-radius:16px 16px 0 0; display:flex; flex-direction:column; overflow:hidden;
+}
+@media(min-width:640px){ .picker{border-radius:16px; max-height:76vh;} }
+.picker-head{padding:14px 16px 10px; border-bottom:1px solid var(--border);}
+.picker-head h3{font-size:16px; margin-bottom:8px;}
+.picker-search{
+  width:100%; border:1px solid var(--border); background:var(--surface); color:var(--text);
+  border-radius:9px; padding:8px 11px; font-size:13.5px; margin-bottom:8px;
+}
+.chips{display:flex; gap:5px; flex-wrap:wrap;}
+.chip{
+  font-family:"JetBrains Mono",monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.03em;
+  padding:4px 9px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--text-dim);
+  cursor:pointer;
+}
+.chip.active{background:var(--text); color:var(--bg); border-color:var(--text);}
+.picker-list{overflow-y:auto; padding:8px 10px 14px; display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px;}
+.pick-card{
+  border:1px solid var(--border); background:var(--surface); border-radius:11px; padding:9px; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center;
+}
+.pick-card:hover{border-color:var(--accent);}
+.pick-card .pi{width:44px;height:44px; border-radius:8px; display:flex; align-items:center; justify-content:center;}
+.pick-card .pi svg{width:32px;height:32px;}
+.pick-card .pn{font-size:11.5px; font-weight:500; line-height:1.25;}
+.pick-card .pg{font-family:"JetBrains Mono",monospace; font-size:8.8px; color:var(--text-dim); text-transform:uppercase;}
+.picker-foot{padding:10px 16px; border-top:1px solid var(--border); display:flex; justify-content:flex-end;}
+
+/* ---------- templates modal ---------- */
+.tmpl-list{display:flex; flex-direction:column; gap:6px; padding:10px 16px 14px; overflow-y:auto;}
+.tmpl-row{display:flex; align-items:center; gap:8px; border:1px solid var(--border); border-radius:10px; padding:9px 11px; background:var(--surface);}
+.tmpl-row .tn{flex:1; min-width:0; font-size:13px; font-weight:500;}
+.tmpl-row .td{font-size:11px; color:var(--text-dim);}
+.empty-note{padding:14px 16px; font-size:13px; color:var(--text-dim);}
+
+/* ---------- preview (screen) ---------- */
+.preview-shell{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px; box-shadow:var(--shadow); overflow-x:auto;}
+.preview-page{width:100%; max-width:760px; margin:0 auto; font-family:"Work Sans",sans-serif; color:#221d17;}
+.pv-top{display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #221d17; padding-bottom:8px; margin-bottom:12px; gap:10px; flex-wrap:wrap;}
+.pv-eyebrow{font-family:"JetBrains Mono",monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#6b6155;}
+.pv-top h2{font-family:"Oswald",sans-serif; font-size:24px; font-weight:700; text-transform:uppercase; margin:2px 0 0;}
+.pv-who{text-align:right; font-size:11.5px; color:#6b6155;}
+.pv-who b{display:block; font-family:"Oswald",sans-serif; font-size:13px; color:#221d17; font-weight:600;}
+.pv-day{margin-bottom:14px; break-inside:avoid;}
+.pv-day-head{display:flex; align-items:baseline; gap:8px; margin-bottom:6px;}
+.pv-day-n{font-family:"JetBrains Mono",monospace; font-size:10px; font-weight:600; color:#faf8f4; background:#221d17; padding:2px 7px; border-radius:4px;}
+.pv-day-head h3{font-family:"Oswald",sans-serif; font-size:14px; font-weight:600; text-transform:uppercase;}
+.pv-day-head .dash{color:#6b6155; font-weight:400;}
+.pv-table{width:100%; border-collapse:collapse; margin-bottom:7px; font-size:12px;}
+.pv-table th{
+  text-align:left; font-family:"JetBrains Mono",monospace; font-size:8.5px; letter-spacing:.06em; text-transform:uppercase;
+  color:#6b6155; font-weight:500; border-bottom:1.3px solid #221d17; padding:4px 6px;
+}
+.pv-table th.r{text-align:right;}
+.pv-table td{padding:5px 6px; border-bottom:0.6px solid #ece5d7;}
+.pv-table tr:nth-child(even) td{background:#f4efe4;}
+.pv-rep{font-family:"JetBrains Mono",monospace; font-size:11.5px; text-align:right; white-space:nowrap;}
+.pv-note{display:block; font-size:10px; color:#6b6155; margin-top:1px;}
+.pv-dot{display:inline-block; width:6px;height:6px;border-radius:50%; margin-right:5px;}
+.pv-tag{font-family:"JetBrains Mono",monospace; font-size:8px; text-transform:uppercase; letter-spacing:.03em; padding:1.5px 5px; border-radius:4px; margin-left:5px; font-weight:600;}
+.pv-tiles{display:flex; gap:5px; flex-wrap:wrap;}
+.pv-tile{width:44px;height:44px; border-radius:6px; border:1px solid #ded5c4; display:flex; align-items:center; justify-content:center;}
+.pv-tile svg{width:34px;height:34px;}
+.pv-empty{color:#6b6155; font-size:13px; padding:20px 4px;}
+.pv-foot{margin-top:14px; font-family:"JetBrains Mono",monospace; font-size:9px; color:#6b6155; text-align:center; letter-spacing:.04em;}
+
+.bone{stroke:#2b2620; stroke-width:5.5; stroke-linecap:round; stroke-linejoin:round; fill:none;}
+.joint{fill:#2b2620;}
+.head{fill:#2b2620;}
+.bench{fill:none; stroke:#2b2620; stroke-width:3;}
+.eq{stroke:currentColor; stroke-width:5; stroke-linecap:round; fill:none;}
+.eqf{fill:currentColor;}
+
+.hint{font-size:12.5px; color:var(--text-dim); margin:10px 2px 0;}
+
+/* ---------- print ---------- */
+@media print{
+  body *{visibility:hidden;}
+  #tab-preview{display:block!important;}
+  .print-area, .print-area *{visibility:visible;}
+  .print-area{position:absolute; left:0; top:0; width:100%; padding:0; margin:0;}
+  .preview-shell{border:none; box-shadow:none; padding:0; border-radius:0;}
+  .preview-page{max-width:none;}
+  @page{ size:A4; margin:12mm 14mm; }
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="eyebrow">Prototipo · para profes de gimnasio</span>
+      <h1>Generador de Rutinas</h1>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="build" type="button">Armar rutina</button>
+      <button class="tab-btn" data-tab="preview" type="button">Vista previa</button>
+    </nav>
+    <div class="actions">
+      <button class="btn ghost" id="btn-templates" type="button">Mis plantillas</button>
+      <button class="btn ghost" id="btn-save-template" type="button">Guardar como plantilla</button>
+      <button class="btn ghost" id="btn-new" type="button">Nueva rutina</button>
+      <button class="btn primary" id="btn-print" type="button">Imprimir / Descargar PDF</button>
+      <span class="drive-save">
+        <button class="btn primary drive-btn" id="btn-drive" type="button">Guardar en Drive</button>
+        <span class="drive-status" id="drive-status" role="status" aria-live="polite"></span>
+      </span>
+    </div>
+  </header>
+
+  <section id="tab-build" class="panel">
+    <div class="meta">
+      <div class="field"><label for="f-gym">Gimnasio</label><input id="f-gym" type="text" placeholder="Nombre del gimnasio"></div>
+      <div class="field"><label for="f-trainer">Profesor/a</label><input id="f-trainer" type="text" placeholder="Tu nombre"></div>
+      <div class="field"><label for="f-client">Cliente</label><input id="f-client" type="text" placeholder="Nombre del cliente"></div>
+      <div class="field"><label for="f-phase">Objetivo / fase</label><input id="f-phase" type="text" placeholder="Ej: fase de definición"></div>
+    </div>
+    <div id="days-list"></div>
+    <button class="add-day-btn" id="btn-add-day" type="button">+ Agregar día</button>
+    <p class="hint">Esta es una versión de prueba: el borrador y tus plantillas se guardan solo en este navegador. Para que una rutina quede archivada en la carpeta del cliente en el Drive del gym, usá "Guardar en Drive".</p>
+  </section>
+
+  <section id="tab-preview" class="panel" hidden>
+    <div class="preview-shell print-area">
+      <div class="preview-page" id="preview-page"></div>
+    </div>
+  </section>
+</div>
+
+<div id="picker-root"></div>
+<div id="templates-root"></div>
+
+<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true"><defs>
+<symbol id="ic-press_plano" viewBox="0 0 100 100">
+<rect x="24" y="66" width="52" height="7" rx="2" class="bench"/>
+<line x1="50" y1="66" x2="50" y2="60" class="bone"/>
+<circle cx="50" cy="58" r="7.5" class="head"/>
+<line x1="50" y1="66" x2="32" y2="72" class="bone"/><line x1="50" y1="66" x2="68" y2="72" class="bone"/>
+<line x1="32" y1="72" x2="26" y2="90" class="bone"/><line x1="68" y1="72" x2="74" y2="90" class="bone"/>
+<line x1="50" y1="60" x2="38" y2="52" class="bone"/><line x1="38" y1="52" x2="38" y2="38" class="bone"/>
+<line x1="50" y1="60" x2="62" y2="52" class="bone"/><line x1="62" y1="52" x2="62" y2="38" class="bone"/>
+<line x1="20" y1="38" x2="80" y2="38" class="eq"/><circle cx="20" cy="38" r="6" class="eqf"/><circle cx="80" cy="38" r="6" class="eqf"/>
+<circle cx="38" cy="52" r="3" class="joint"/><circle cx="62" cy="52" r="3" class="joint"/>
+</symbol>
+<symbol id="ic-triceps_soga" viewBox="0 0 100 100">
+<line x1="50" y1="20" x2="50" y2="30" class="eq"/><circle cx="50" cy="20" r="3.5" class="eqf"/>
+<circle cx="50" cy="32" r="7.5" class="head"/>
+<line x1="50" y1="39" x2="50" y2="66" class="bone"/>
+<line x1="50" y1="66" x2="38" y2="92" class="bone"/><line x1="50" y1="66" x2="62" y2="92" class="bone"/>
+<line x1="50" y1="42" x2="40" y2="50" class="bone"/><line x1="40" y1="50" x2="42" y2="74" class="eq"/>
+<line x1="50" y1="42" x2="60" y2="50" class="bone"/><line x1="60" y1="50" x2="58" y2="74" class="eq"/>
+<circle cx="40" cy="50" r="3" class="joint"/><circle cx="60" cy="50" r="3" class="joint"/>
+<line x1="38" y1="74" x2="46" y2="78" class="eq"/><line x1="62" y1="74" x2="54" y2="78" class="eq"/>
+</symbol>
+<symbol id="ic-vuelos_laterales" viewBox="0 0 100 100">
+<circle cx="48" cy="24" r="7.5" class="head"/>
+<line x1="48" y1="31" x2="48" y2="64" class="bone"/>
+<line x1="48" y1="64" x2="38" y2="92" class="bone"/><line x1="48" y1="64" x2="58" y2="92" class="bone"/>
+<line x1="48" y1="38" x2="24" y2="30" class="eq"/>
+<circle cx="24" cy="30" r="4.5" class="eqf"/>
+<line x1="48" y1="38" x2="58" y2="58" class="bone"/><line x1="58" y1="58" x2="58" y2="74" class="bone"/>
+<circle cx="58" cy="58" r="3" class="joint"/>
+</symbol>
+<symbol id="ic-press_inclinado" viewBox="0 0 100 100">
+<rect x="46" y="54" width="10" height="42" rx="3" class="bench"/>
+<g transform="rotate(-32 50 74)"><rect x="30" y="70" width="40" height="7" rx="2" class="bench"/></g>
+<line x1="50" y1="52" x2="50" y2="44" class="bone"/>
+<circle cx="50" cy="42" r="7.5" class="head"/>
+<line x1="50" y1="52" x2="36" y2="58" class="bone"/><line x1="50" y1="52" x2="64" y2="58" class="bone"/>
+<line x1="36" y1="58" x2="26" y2="64" class="bone"/><line x1="64" y1="58" x2="74" y2="64" class="bone"/>
+<line x1="50" y1="50" x2="32" y2="40" class="bone"/><line x1="32" y1="40" x2="20" y2="26" class="eq"/>
+<line x1="50" y1="50" x2="68" y2="40" class="bone"/><line x1="68" y1="40" x2="80" y2="26" class="eq"/>
+<circle cx="20" cy="26" r="4.5" class="eqf"/><circle cx="80" cy="26" r="4.5" class="eqf"/>
+</symbol>
+<symbol id="ic-fondos_banco" viewBox="0 0 100 100">
+<rect x="58" y="58" width="26" height="7" rx="2" class="bench"/>
+<circle cx="66" cy="40" r="7.5" class="head"/>
+<line x1="66" y1="47" x2="66" y2="60" class="bone"/>
+<line x1="66" y1="58" x2="58" y2="60" class="bone"/><line x1="58" y1="60" x2="55" y2="66" class="bone"/>
+<line x1="66" y1="60" x2="30" y2="86" class="bone"/>
+<line x1="66" y1="58" x2="34" y2="60" class="eq"/>
+<circle cx="66" cy="60" r="3" class="joint"/>
+<line x1="30" y1="86" x2="20" y2="86" class="bone"/>
+</symbol>
+<symbol id="ic-press_arnold" viewBox="0 0 100 100">
+<circle cx="50" cy="24" r="7.5" class="head"/>
+<line x1="50" y1="31" x2="50" y2="64" class="bone"/>
+<line x1="50" y1="64" x2="38" y2="92" class="bone"/><line x1="50" y1="64" x2="62" y2="92" class="bone"/>
+<line x1="50" y1="36" x2="36" y2="40" class="bone"/><line x1="36" y1="40" x2="32" y2="30" class="eq"/>
+<line x1="50" y1="36" x2="64" y2="40" class="bone"/><line x1="64" y1="40" x2="68" y2="30" class="eq"/>
+<circle cx="32" cy="30" r="4.5" class="eqf"/><circle cx="68" cy="30" r="4.5" class="eqf"/>
+<line x1="38" y1="22" x2="34" y2="16" class="eq"/><line x1="62" y1="22" x2="66" y2="16" class="eq"/>
+<circle cx="34" cy="16" r="3.5" class="eqf"/><circle cx="66" cy="16" r="3.5" class="eqf"/>
+</symbol>
+<symbol id="ic-flexiones" viewBox="0 0 100 100">
+<circle cx="20" cy="58" r="7.5" class="head"/>
+<line x1="27" y1="58" x2="78" y2="68" class="bone"/>
+<line x1="35" y1="60" x2="35" y2="84" class="bone"/><line x1="60" y1="64" x2="60" y2="86" class="bone"/>
+<line x1="20" y1="66" x2="16" y2="86" class="bone"/>
+<line x1="78" y1="68" x2="86" y2="86" class="bone"/>
+<circle cx="35" cy="60" r="3" class="joint"/><circle cx="60" cy="64" r="3" class="joint"/>
+</symbol>
+<symbol id="ic-patada_triceps" viewBox="0 0 100 100">
+<circle cx="28" cy="32" r="7.5" class="head"/>
+<line x1="30" y1="39" x2="58" y2="56" class="bone"/>
+<line x1="58" y1="56" x2="56" y2="92" class="bone"/><line x1="58" y1="56" x2="72" y2="90" class="bone"/>
+<line x1="36" y1="44" x2="20" y2="50" class="bone"/><line x1="20" y1="50" x2="20" y2="64" class="bone"/>
+<line x1="44" y1="50" x2="60" y2="42" class="bone"/><line x1="60" y1="42" x2="78" y2="44" class="eq"/>
+<circle cx="78" cy="44" r="4.5" class="eqf"/>
+<circle cx="20" cy="50" r="3" class="joint"/><circle cx="60" cy="42" r="3" class="joint"/>
+</symbol>
+<symbol id="ic-dominadas" viewBox="0 0 100 100">
+<line x1="20" y1="16" x2="80" y2="16" class="eq"/><line x1="20" y1="12" x2="20" y2="20" class="eq"/><line x1="80" y1="12" x2="80" y2="20" class="eq"/>
+<line x1="38" y1="16" x2="38" y2="24" class="bone"/><line x1="62" y1="16" x2="62" y2="24" class="bone"/>
+<circle cx="50" cy="34" r="7.5" class="head"/>
+<line x1="50" y1="41" x2="38" y2="20" class="bone"/><line x1="50" y1="41" x2="62" y2="20" class="bone"/>
+<line x1="50" y1="41" x2="50" y2="66" class="bone"/>
+<line x1="50" y1="66" x2="42" y2="90" class="bone"/><line x1="50" y1="66" x2="58" y2="90" class="bone"/>
+<path d="M 44 90 Q 50 98 56 90" class="eq"/>
+</symbol>
+<symbol id="ic-biceps_barra" viewBox="0 0 100 100">
+<circle cx="50" cy="24" r="7.5" class="head"/>
+<line x1="50" y1="31" x2="50" y2="62" class="bone"/>
+<line x1="50" y1="62" x2="40" y2="92" class="bone"/><line x1="50" y1="62" x2="60" y2="92" class="bone"/>
+<line x1="50" y1="38" x2="36" y2="48" class="bone"/><line x1="36" y1="48" x2="42" y2="30" class="bone"/>
+<line x1="50" y1="38" x2="64" y2="48" class="bone"/><line x1="64" y1="48" x2="58" y2="30" class="bone"/>
+<circle cx="36" cy="48" r="3" class="joint"/><circle cx="64" cy="48" r="3" class="joint"/>
+<line x1="32" y1="28" x2="68" y2="28" class="eq"/><circle cx="32" cy="28" r="5" class="eqf"/><circle cx="68" cy="28" r="5" class="eqf"/>
+</symbol>
+<symbol id="ic-rotaciones" viewBox="0 0 100 100">
+<line x1="84" y1="10" x2="84" y2="94" class="eq"/>
+<circle cx="48" cy="26" r="7.5" class="head"/>
+<line x1="48" y1="33" x2="48" y2="64" class="bone"/>
+<line x1="48" y1="64" x2="38" y2="92" class="bone"/><line x1="48" y1="64" x2="58" y2="92" class="bone"/>
+<line x1="48" y1="40" x2="68" y2="40" class="bone"/>
+<line x1="68" y1="40" x2="68" y2="20" class="bone"/>
+<circle cx="68" cy="40" r="3" class="joint"/>
+<circle cx="68" cy="18" r="4.5" class="eqf"/>
+<line x1="48" y1="40" x2="32" y2="44" class="bone"/><line x1="32" y1="44" x2="32" y2="64" class="bone"/>
+</symbol>
+<symbol id="ic-pullover_soga" viewBox="0 0 100 100">
+<line x1="50" y1="6" x2="50" y2="20" class="eq"/><circle cx="50" cy="6" r="3.5" class="eqf"/>
+<rect x="40" y="64" width="20" height="7" rx="2" class="bench"/>
+<circle cx="50" cy="58" r="7.5" class="head"/>
+<line x1="50" y1="52" x2="50" y2="66" class="bone"/>
+<line x1="50" y1="66" x2="38" y2="92" class="bone"/><line x1="50" y1="66" x2="62" y2="92" class="bone"/>
+<path d="M 44 52 Q 30 40 40 22" class="eq"/>
+<path d="M 56 52 Q 70 40 60 22" class="eq"/>
+<circle cx="40" cy="22" r="3" class="joint"/><circle cx="60" cy="22" r="3" class="joint"/>
+</symbol>
+<symbol id="ic-biceps_inclinado" viewBox="0 0 100 100">
+<g transform="rotate(-32 50 74)"><rect x="30" y="70" width="40" height="7" rx="2" class="bench"/></g>
+<line x1="50" y1="52" x2="50" y2="44" class="bone"/>
+<circle cx="50" cy="42" r="7.5" class="head"/>
+<line x1="50" y1="52" x2="36" y2="58" class="bone"/><line x1="50" y1="52" x2="64" y2="58" class="bone"/>
+<line x1="36" y1="58" x2="30" y2="74" class="bone"/><line x1="64" y1="58" x2="70" y2="74" class="bone"/>
+<line x1="30" y1="74" x2="26" y2="66" class="bone"/><line x1="70" y1="74" x2="74" y2="66" class="bone"/>
+<circle cx="26" cy="66" r="4.5" class="eqf"/><circle cx="74" cy="66" r="4.5" class="eqf"/>
+</symbol>
+<symbol id="ic-antebrazo" viewBox="0 0 100 100">
+<rect x="30" y="60" width="26" height="6" rx="2" class="bench"/>
+<circle cx="66" cy="32" r="7.5" class="head"/>
+<line x1="66" y1="39" x2="66" y2="58" class="bone"/>
+<line x1="66" y1="55" x2="50" y2="58" class="bone"/>
+<line x1="50" y1="58" x2="46" y2="62" class="bone"/>
+<line x1="30" y1="62" x2="60" y2="62" class="eq"/><circle cx="30" cy="62" r="4.5" class="eqf"/><circle cx="60" cy="62" r="4.5" class="eqf"/>
+<circle cx="46" cy="62" r="2.6" class="joint"/>
+<line x1="66" y1="58" x2="60" y2="76" class="bone"/><line x1="66" y1="58" x2="74" y2="76" class="bone"/>
+</symbol>
+<symbol id="ic-dorsales_polea" viewBox="0 0 100 100">
+<line x1="50" y1="4" x2="50" y2="16" class="eq"/>
+<line x1="24" y1="16" x2="76" y2="16" class="eq"/><circle cx="24" cy="16" r="3" class="eqf"/><circle cx="76" cy="16" r="3" class="eqf"/>
+<rect x="46" y="66" width="8" height="10" rx="2" class="bench"/>
+<circle cx="50" cy="36" r="7.5" class="head"/>
+<line x1="50" y1="43" x2="50" y2="66" class="bone"/>
+<line x1="50" y1="66" x2="40" y2="92" class="bone"/><line x1="50" y1="66" x2="60" y2="92" class="bone"/>
+<line x1="50" y1="46" x2="32" y2="30" class="bone"/><line x1="32" y1="30" x2="30" y2="18" class="bone"/>
+<line x1="50" y1="46" x2="68" y2="30" class="bone"/><line x1="68" y1="30" x2="70" y2="18" class="bone"/>
+<circle cx="30" cy="18" r="3" class="joint"/><circle cx="70" cy="18" r="3" class="joint"/>
+</symbol>
+<symbol id="ic-cuadriceps" viewBox="0 0 100 100">
+<rect x="20" y="26" width="14" height="44" rx="3" class="bench"/>
+<circle cx="31" cy="20" r="7.5" class="head"/>
+<line x1="31" y1="27" x2="31" y2="52" class="bone"/>
+<line x1="31" y1="52" x2="50" y2="58" class="bone"/>
+<line x1="50" y1="58" x2="50" y2="74" class="bone"/><line x1="50" y1="74" x2="76" y2="74" class="eq"/>
+<circle cx="76" cy="74" r="4.5" class="eqf"/>
+<line x1="31" y1="30" x2="20" y2="38" class="bone"/><line x1="20" y1="38" x2="18" y2="56" class="bone"/>
+<circle cx="50" cy="58" r="3" class="joint"/>
+</symbol>
+<symbol id="ic-peso_muerto" viewBox="0 0 100 100">
+<circle cx="60" cy="26" r="7.5" class="head"/>
+<line x1="58" y1="33" x2="42" y2="52" class="bone"/>
+<line x1="42" y1="52" x2="44" y2="76" class="bone"/><line x1="44" y1="76" x2="40" y2="94" class="bone"/><line x1="44" y1="76" x2="58" y2="94" class="bone"/>
+<line x1="50" y1="42" x2="30" y2="64" class="bone"/><line x1="50" y1="42" x2="60" y2="56" class="bone"/>
+<line x1="20" y1="76" x2="64" y2="76" class="eq"/><circle cx="20" cy="76" r="6" class="eqf"/><circle cx="64" cy="76" r="6" class="eqf"/>
+<circle cx="30" cy="64" r="3" class="joint"/><circle cx="60" cy="56" r="3" class="joint"/>
+</symbol>
+<symbol id="ic-sentadilla" viewBox="0 0 100 100">
+<line x1="20" y1="26" x2="80" y2="26" class="eq"/><circle cx="20" cy="26" r="6" class="eqf"/><circle cx="80" cy="26" r="6" class="eqf"/>
+<circle cx="50" cy="34" r="7.5" class="head"/>
+<line x1="50" y1="41" x2="50" y2="58" class="bone"/>
+<line x1="50" y1="58" x2="32" y2="68" class="bone"/><line x1="32" y1="68" x2="32" y2="90" class="bone"/>
+<line x1="50" y1="58" x2="68" y2="68" class="bone"/><line x1="68" y1="68" x2="68" y2="90" class="bone"/>
+<line x1="50" y1="44" x2="36" y2="50" class="bone"/><line x1="50" y1="44" x2="64" y2="50" class="bone"/>
+<circle cx="32" cy="68" r="3" class="joint"/><circle cx="68" cy="68" r="3" class="joint"/>
+</symbol>
+<symbol id="ic-femoral" viewBox="0 0 100 100">
+<rect x="16" y="44" width="56" height="9" rx="3" class="bench"/>
+<circle cx="78" cy="40" r="7.5" class="head"/>
+<line x1="71" y1="44" x2="32" y2="49" class="bone"/>
+<line x1="32" y1="49" x2="20" y2="49" class="bone"/>
+<line x1="32" y1="49" x2="44" y2="30" class="eq"/>
+<circle cx="44" cy="30" r="4.5" class="eqf"/>
+<line x1="71" y1="50" x2="74" y2="68" class="bone"/><line x1="74" y1="68" x2="64" y2="80" class="bone"/>
+<circle cx="74" cy="68" r="3" class="joint"/>
+</symbol>
+<symbol id="ic-gemelos_prensa" viewBox="0 0 100 100">
+<g transform="rotate(-40 50 50)">
+<rect x="56" y="20" width="10" height="60" rx="2" class="bench"/>
+<rect x="20" y="74" width="40" height="8" rx="2" class="eq"/>
+</g>
+<circle cx="34" cy="30" r="7.5" class="head"/>
+<line x1="38" y1="36" x2="50" y2="56" class="bone"/>
+<line x1="50" y1="56" x2="60" y2="76" class="bone"/><line x1="60" y1="76" x2="70" y2="72" class="bone"/>
+<line x1="50" y1="56" x2="38" y2="66" class="bone"/><line x1="38" y1="66" x2="30" y2="60" class="bone"/>
+<circle cx="60" cy="76" r="3" class="joint"/>
+</symbol>
+<symbol id="ic-peso_muerto_unilateral" viewBox="0 0 100 100">
+<rect x="22" y="84" width="22" height="8" rx="2" class="bench"/>
+<circle cx="56" cy="28" r="7.5" class="head"/>
+<line x1="54" y1="35" x2="42" y2="52" class="bone"/>
+<line x1="42" y1="52" x2="33" y2="82" class="bone"/>
+<line x1="48" y1="44" x2="60" y2="64" class="bone"/><line x1="60" y1="64" x2="60" y2="80" class="eq"/>
+<circle cx="60" cy="80" r="4" class="eqf"/>
+<line x1="44" y1="48" x2="68" y2="44" class="bone"/><line x1="68" y1="44" x2="80" y2="50" class="bone"/>
+<circle cx="68" cy="44" r="3" class="joint"/>
+</symbol>
+<symbol id="ic-estocada_bulgara" viewBox="0 0 100 100">
+<rect x="64" y="60" width="20" height="7" rx="2" class="bench"/>
+<circle cx="38" cy="26" r="7.5" class="head"/>
+<line x1="38" y1="33" x2="42" y2="58" class="bone"/>
+<line x1="42" y1="58" x2="30" y2="80" class="bone"/><line x1="30" y1="80" x2="20" y2="92" class="bone"/>
+<line x1="42" y1="58" x2="64" y2="64" class="bone"/>
+<line x1="38" y1="40" x2="28" y2="48" class="bone"/><line x1="28" y1="48" x2="26" y2="66" class="eq"/>
+<line x1="38" y1="40" x2="50" y2="48" class="bone"/><line x1="50" y1="48" x2="52" y2="66" class="eq"/>
+<circle cx="26" cy="66" r="3.5" class="eqf"/><circle cx="52" cy="66" r="3.5" class="eqf"/>
+</symbol>
+<symbol id="ic-vuelos_laterales_bi" viewBox="0 0 100 100">
+<circle cx="50" cy="24" r="7.5" class="head"/>
+<line x1="50" y1="31" x2="50" y2="64" class="bone"/>
+<line x1="50" y1="64" x2="40" y2="92" class="bone"/><line x1="50" y1="64" x2="60" y2="92" class="bone"/>
+<line x1="50" y1="38" x2="26" y2="32" class="bone"/><circle cx="18.0" cy="31" r="3.4" class="eqf"/><circle cx="26.0" cy="31" r="3.4" class="eqf"/><line x1="18.0" y1="31" x2="26.0" y2="31" class="eq"/>
+<line x1="50" y1="38" x2="74" y2="32" class="bone"/><circle cx="74.0" cy="31" r="3.4" class="eqf"/><circle cx="82.0" cy="31" r="3.4" class="eqf"/><line x1="74.0" y1="31" x2="82.0" y2="31" class="eq"/>
+</symbol>
+<symbol id="ic-press_militar" viewBox="0 0 100 100">
+<circle cx="50" cy="22" r="7.5" class="head"/>
+<line x1="50" y1="29" x2="50" y2="64" class="bone"/>
+<line x1="50" y1="64" x2="40" y2="92" class="bone"/><line x1="50" y1="64" x2="60" y2="92" class="bone"/>
+<line x1="50" y1="38" x2="38" y2="26" class="bone"/><line x1="38" y1="26" x2="30" y2="14" class="bone"/>
+<line x1="50" y1="38" x2="62" y2="26" class="bone"/><line x1="62" y1="26" x2="70" y2="14" class="bone"/>
+<line x1="30" y1="14" x2="70" y2="14" class="eq"/><circle cx="30" cy="14" r="6" class="eqf"/><circle cx="70" cy="14" r="6" class="eqf"/>
+<circle cx="38" cy="26" r="3" class="joint"/><circle cx="62" cy="26" r="3" class="joint"/>
+</symbol>
+<symbol id="ic-press_banca_mancuerna" viewBox="0 0 100 100">
+<rect x="24" y="66" width="52" height="7" rx="2" class="bench"/>
+<line x1="50" y1="66" x2="50" y2="60" class="bone"/><circle cx="50" cy="58" r="7.5" class="head"/>
+<line x1="50" y1="66" x2="32" y2="72" class="bone"/><line x1="50" y1="66" x2="68" y2="72" class="bone"/>
+<line x1="32" y1="72" x2="26" y2="90" class="bone"/><line x1="68" y1="72" x2="74" y2="90" class="bone"/>
+<line x1="50" y1="60" x2="38" y2="52" class="bone"/><line x1="38" y1="52" x2="38" y2="38" class="bone"/>
+<line x1="50" y1="60" x2="62" y2="52" class="bone"/><line x1="62" y1="52" x2="62" y2="38" class="bone"/>
+<circle cx="38" cy="52" r="3" class="joint"/><circle cx="62" cy="52" r="3" class="joint"/>
+<circle cx="34.0" cy="36" r="3.4" class="eqf"/><circle cx="42.0" cy="36" r="3.4" class="eqf"/><line x1="34.0" y1="36" x2="42.0" y2="36" class="eq"/><circle cx="58.0" cy="36" r="3.4" class="eqf"/><circle cx="66.0" cy="36" r="3.4" class="eqf"/><line x1="58.0" y1="36" x2="66.0" y2="36" class="eq"/>
+</symbol>
+<symbol id="ic-vuelos_frontales_banco" viewBox="0 0 100 100">
+<rect x="38" y="70" width="20" height="8" rx="2" class="bench"/>
+<circle cx="48" cy="26" r="7.5" class="head"/>
+<line x1="48" y1="33" x2="48" y2="58" class="bone"/>
+<line x1="48" y1="58" x2="42" y2="68" class="bone"/><line x1="42" y1="68" x2="38" y2="78" class="bone"/>
+<line x1="48" y1="58" x2="56" y2="68" class="bone"/><line x1="56" y1="68" x2="60" y2="78" class="bone"/>
+<line x1="48" y1="40" x2="62" y2="36" class="bone"/><line x1="62" y1="36" x2="74" y2="34" class="bone"/><circle cx="72.0" cy="33" r="3.4" class="eqf"/><circle cx="80.0" cy="33" r="3.4" class="eqf"/><line x1="72.0" y1="33" x2="80.0" y2="33" class="eq"/>
+<circle cx="62" cy="36" r="3" class="joint"/>
+<line x1="48" y1="40" x2="40" y2="50" class="bone"/><line x1="40" y1="50" x2="38" y2="64" class="bone"/>
+</symbol>
+<symbol id="ic-press_frances" viewBox="0 0 100 100">
+<rect x="24" y="66" width="52" height="7" rx="2" class="bench"/>
+<line x1="50" y1="66" x2="50" y2="60" class="bone"/><circle cx="50" cy="58" r="7.5" class="head"/>
+<line x1="50" y1="66" x2="32" y2="72" class="bone"/><line x1="50" y1="66" x2="68" y2="72" class="bone"/>
+<line x1="32" y1="72" x2="26" y2="90" class="bone"/><line x1="68" y1="72" x2="74" y2="90" class="bone"/>
+<line x1="50" y1="60" x2="38" y2="52" class="bone"/><line x1="38" y1="52" x2="28" y2="36" class="bone"/><line x1="28" y1="36" x2="36" y2="48" class="bone"/>
+<line x1="50" y1="60" x2="62" y2="52" class="bone"/><line x1="62" y1="52" x2="72" y2="36" class="bone"/><line x1="72" y1="36" x2="64" y2="48" class="bone"/>
+<circle cx="38" cy="52" r="3" class="joint"/><circle cx="62" cy="52" r="3" class="joint"/>
+<circle cx="32.0" cy="51" r="3.4" class="eqf"/><circle cx="40.0" cy="51" r="3.4" class="eqf"/><line x1="32.0" y1="51" x2="40.0" y2="51" class="eq"/><circle cx="60.0" cy="51" r="3.4" class="eqf"/><circle cx="68.0" cy="51" r="3.4" class="eqf"/><line x1="60.0" y1="51" x2="68.0" y2="51" class="eq"/>
+</symbol>
+<symbol id="ic-abs_crunch" viewBox="0 0 100 100">
+<line x1="14" y1="88" x2="90" y2="88" class="bench"/>
+<circle cx="84" cy="58" r="7.5" class="head"/>
+<line x1="78" y1="64" x2="78" y2="64" class="bone"/>
+<line x1="78" y1="64" x2="56" y2="82" class="bone"/>
+<line x1="56" y1="82" x2="40" y2="64" class="bone"/><line x1="40" y1="64" x2="32" y2="84" class="bone"/>
+<line x1="78" y1="64" x2="54" y2="68" class="bone"/>
+<circle cx="78" cy="64" r="3" class="joint"/><circle cx="40" cy="64" r="3" class="joint"/>
+</symbol>
+<symbol id="ic-biceps_mancuerna" viewBox="0 0 100 100">
+<circle cx="50" cy="24" r="7.5" class="head"/>
+<line x1="50" y1="31" x2="50" y2="64" class="bone"/>
+<line x1="50" y1="64" x2="40" y2="92" class="bone"/><line x1="50" y1="64" x2="60" y2="92" class="bone"/>
+<line x1="50" y1="38" x2="36" y2="48" class="bone"/><line x1="36" y1="48" x2="40" y2="32" class="bone"/><circle cx="36.0" cy="29" r="3.4" class="eqf"/><circle cx="44.0" cy="29" r="3.4" class="eqf"/><line x1="36.0" y1="29" x2="44.0" y2="29" class="eq"/>
+<line x1="50" y1="38" x2="64" y2="50" class="bone"/><line x1="64" y1="50" x2="66" y2="68" class="bone"/><circle cx="62.0" cy="71" r="3.4" class="eqf"/><circle cx="70.0" cy="71" r="3.4" class="eqf"/><line x1="62.0" y1="71" x2="70.0" y2="71" class="eq"/>
+<circle cx="36" cy="48" r="3" class="joint"/><circle cx="64" cy="50" r="3" class="joint"/>
+</symbol>
+<symbol id="ic-remo_mancuerna_unilateral" viewBox="0 0 100 100">
+<rect x="18" y="56" width="32" height="7" rx="2" class="bench"/>
+<circle cx="28" cy="40" r="7.5" class="head"/>
+<line x1="30" y1="46" x2="66" y2="58" class="bone"/>
+<line x1="30" y1="52" x2="30" y2="64" class="bone"/>
+<line x1="66" y1="58" x2="72" y2="78" class="bone"/><line x1="72" y1="78" x2="80" y2="92" class="bone"/>
+<line x1="44" y1="50" x2="40" y2="42" class="bone"/><line x1="40" y1="42" x2="34" y2="56" class="bone"/>
+<circle cx="40" cy="42" r="3" class="joint"/>
+<circle cx="54.0" cy="48" r="3.4" class="eqf"/><circle cx="62.0" cy="48" r="3.4" class="eqf"/><line x1="54.0" y1="48" x2="62.0" y2="48" class="eq"/><line x1="52" y1="52" x2="58" y2="48" class="bone"/>
+</symbol>
+<symbol id="ic-prensa_piernas" viewBox="0 0 100 100">
+<g transform="rotate(-38 50 52)">
+<rect x="56" y="16" width="10" height="58" rx="2" class="bench"/>
+<rect x="18" y="72" width="42" height="9" rx="2" class="eq"/>
+</g>
+<circle cx="28" cy="30" r="7.5" class="head"/>
+<line x1="32" y1="36" x2="44" y2="52" class="bone"/>
+<line x1="44" y1="52" x2="58" y2="46" class="bone"/><line x1="58" y1="46" x2="70" y2="58" class="bone"/>
+<line x1="44" y1="52" x2="54" y2="62" class="bone"/><line x1="54" y1="62" x2="68" y2="72" class="bone"/>
+<circle cx="58" cy="46" r="3" class="joint"/><circle cx="54" cy="62" r="3" class="joint"/>
+</symbol>
+<symbol id="ic-gemelos_mancuernas" viewBox="0 0 100 100">
+<line x1="28" y1="90" x2="72" y2="90" class="bench"/>
+<circle cx="50" cy="22" r="7.5" class="head"/>
+<line x1="50" y1="29" x2="50" y2="58" class="bone"/>
+<line x1="50" y1="58" x2="42" y2="84" class="bone"/><line x1="42" y1="84" x2="48" y2="88" class="bone"/>
+<line x1="50" y1="58" x2="58" y2="84" class="bone"/><line x1="58" y1="84" x2="52" y2="88" class="bone"/>
+<line x1="50" y1="36" x2="38" y2="60" class="bone"/><circle cx="33.0" cy="64" r="3.4" class="eqf"/><circle cx="41.0" cy="64" r="3.4" class="eqf"/><line x1="33.0" y1="64" x2="41.0" y2="64" class="eq"/>
+<line x1="50" y1="36" x2="62" y2="60" class="bone"/><circle cx="59.0" cy="64" r="3.4" class="eqf"/><circle cx="67.0" cy="64" r="3.4" class="eqf"/><line x1="59.0" y1="64" x2="67.0" y2="64" class="eq"/>
+</symbol>
+<symbol id="ic-sentadilla_hack" viewBox="0 0 100 100">
+<g transform="rotate(14 60 45)"><rect x="62" y="8" width="10" height="54" rx="2" class="bench"/></g>
+<line x1="20" y1="92" x2="66" y2="92" class="eq"/>
+<circle cx="40" cy="30" r="7.5" class="head"/>
+<line x1="40" y1="37" x2="46" y2="58" class="bone"/>
+<line x1="46" y1="58" x2="32" y2="72" class="bone"/><line x1="32" y1="72" x2="30" y2="90" class="bone"/>
+<line x1="46" y1="58" x2="56" y2="72" class="bone"/><line x1="56" y1="72" x2="56" y2="90" class="bone"/>
+<circle cx="32" cy="72" r="3" class="joint"/><circle cx="56" cy="72" r="3" class="joint"/>
+</symbol>
+<symbol id="ic-remo_menton" viewBox="0 0 100 100">
+<circle cx="50" cy="22" r="7.5" class="head"/>
+<line x1="50" y1="29" x2="50" y2="62" class="bone"/>
+<line x1="50" y1="62" x2="42" y2="90" class="bone"/><line x1="50" y1="62" x2="58" y2="90" class="bone"/>
+<line x1="50" y1="38" x2="30" y2="30" class="bone"/><line x1="30" y1="30" x2="38" y2="26" class="bone"/>
+<line x1="50" y1="38" x2="70" y2="30" class="bone"/><line x1="70" y1="30" x2="62" y2="26" class="bone"/>
+<line x1="34" y1="24" x2="66" y2="24" class="eq"/><circle cx="34" cy="24" r="5" class="eqf"/><circle cx="66" cy="24" r="5" class="eqf"/>
+<circle cx="30" cy="30" r="3" class="joint"/><circle cx="70" cy="30" r="3" class="joint"/>
+</symbol>
+<symbol id="ic-rotacion_2brazos" viewBox="0 0 100 100">
+<circle cx="50" cy="24" r="7.5" class="head"/>
+<line x1="50" y1="31" x2="50" y2="62" class="bone"/>
+<line x1="50" y1="62" x2="42" y2="90" class="bone"/><line x1="50" y1="62" x2="58" y2="90" class="bone"/>
+<line x1="50" y1="38" x2="32" y2="38" class="bone"/><line x1="32" y1="38" x2="32" y2="20" class="bone"/><circle cx="28.0" cy="17" r="3.4" class="eqf"/><circle cx="36.0" cy="17" r="3.4" class="eqf"/><line x1="28.0" y1="17" x2="36.0" y2="17" class="eq"/>
+<line x1="50" y1="38" x2="68" y2="38" class="bone"/><line x1="68" y1="38" x2="68" y2="20" class="bone"/><circle cx="64.0" cy="17" r="3.4" class="eqf"/><circle cx="72.0" cy="17" r="3.4" class="eqf"/><line x1="64.0" y1="17" x2="72.0" y2="17" class="eq"/>
+<circle cx="32" cy="38" r="3" class="joint"/><circle cx="68" cy="38" r="3" class="joint"/>
+</symbol>
+<symbol id="ic-cardio" viewBox="0 0 100 100"><path d="M14 54 H36 L46 24 L58 78 L68 54 H86" class="bone" fill="none"/></symbol>
+<symbol id="ic-custom" viewBox="0 0 100 100"><line x1="20" y1="50" x2="80" y2="50" class="eq"/><circle cx="20" cy="50" r="9" class="eqf"/><circle cx="80" cy="50" r="9" class="eqf"/><circle cx="35" cy="50" r="4" class="eqf"/><circle cx="65" cy="50" r="4" class="eqf"/></symbol>
+</defs></svg>
+
+<script>
+const EXERCISES = [{"id": "press_plano", "name": "Press banca con barra", "group": "Pecho", "icon": "press_plano", "reps": "4×8-10"}, {"id": "press_banca_mancuerna", "name": "Press banca plano con mancuerna", "group": "Pecho", "icon": "press_banca_mancuerna", "reps": "4×10"}, {"id": "press_inclinado", "name": "Press inclinado con mancuerna", "group": "Pecho", "icon": "press_inclinado", "reps": "4×10"}, {"id": "flexiones", "name": "Flexiones de brazos", "group": "Pecho", "icon": "flexiones", "reps": "4× al fallo"}, {"id": "press_militar", "name": "Press militar con barra", "group": "Hombro", "icon": "press_militar", "reps": "4×10"}, {"id": "press_arnold", "name": "Press Arnold con mancuernas", "group": "Hombro", "icon": "press_arnold", "reps": "4×10"}, {"id": "vuelos_laterales", "name": "Vuelos laterales unilaterales", "group": "Hombro", "icon": "vuelos_laterales", "reps": "4×8-10"}, {"id": "vuelos_laterales_bi", "name": "Vuelos laterales con mancuernas", "group": "Hombro", "icon": "vuelos_laterales_bi", "reps": "4×12"}, {"id": "vuelos_frontales_banco", "name": "Vuelos frontales en banco", "group": "Hombro", "icon": "vuelos_frontales_banco", "reps": "4×10"}, {"id": "remo_menton", "name": "Remo al mentón", "group": "Hombro", "icon": "remo_menton", "reps": "4×10"}, {"id": "rotacion_2brazos", "name": "Rotación de hombro con mancuerna", "group": "Hombro", "icon": "rotacion_2brazos", "reps": "4×10"}, {"id": "triceps_soga", "name": "Extensión de tríceps en polea", "group": "Tríceps", "icon": "triceps_soga", "reps": "4×10-12"}, {"id": "fondos_banco", "name": "Fondos en banco", "group": "Tríceps", "icon": "fondos_banco", "reps": "4×12"}, {"id": "patada_triceps", "name": "Patada de tríceps con mancuerna", "group": "Tríceps", "icon": "patada_triceps", "reps": "4×10-12"}, {"id": "press_frances", "name": "Press francés con mancuernas", "group": "Tríceps", "icon": "press_frances", "reps": "4×10"}, {"id": "dominadas", "name": "Dominadas (asistidas con banda)", "group": "Espalda", "icon": "dominadas", "reps": "4-5× al fallo"}, {"id": "dorsales_polea", "name": "Jalón / dorsales en polea alta", "group": "Espalda", "icon": "dorsales_polea", "reps": "4×10"}, {"id": "pullover_soga", "name": "Pullover con soga en polea alta", "group": "Espalda", "icon": "pullover_soga", "reps": "4×8-10"}, {"id": "remo_mancuerna_unilateral", "name": "Remo con mancuerna unilateral", "group": "Espalda", "icon": "remo_mancuerna_unilateral", "reps": "4×10"}, {"id": "biceps_barra", "name": "Bíceps con barra", "group": "Bíceps", "icon": "biceps_barra", "reps": "4×8-10"}, {"id": "biceps_mancuerna", "name": "Bíceps con mancuerna", "group": "Bíceps", "icon": "biceps_mancuerna", "reps": "4×10-12"}, {"id": "biceps_inclinado", "name": "Bíceps en banco inclinado", "group": "Bíceps", "icon": "biceps_inclinado", "reps": "4×10"}, {"id": "antebrazo", "name": "Antebrazo posterior con barra", "group": "Antebrazo", "icon": "antebrazo", "reps": "4×8-12"}, {"id": "cuadriceps", "name": "Sillón de cuádriceps", "group": "Cuádriceps", "icon": "cuadriceps", "reps": "3-4×10-15"}, {"id": "sentadilla", "name": "Sentadilla con barra", "group": "Cuádriceps", "icon": "sentadilla", "reps": "4×8-10"}, {"id": "sentadilla_hack", "name": "Sentadilla Hack", "group": "Cuádriceps", "icon": "sentadilla_hack", "reps": "3-4×10-15"}, {"id": "prensa_piernas", "name": "Prensa de piernas", "group": "Cuádriceps", "icon": "prensa_piernas", "reps": "3-4×15"}, {"id": "estocada_bulgara", "name": "Estocada búlgara", "group": "Cuádriceps", "icon": "estocada_bulgara", "reps": "4×10"}, {"id": "femoral", "name": "Camilla de femoral", "group": "Femoral", "icon": "femoral", "reps": "3-4×12"}, {"id": "peso_muerto", "name": "Peso muerto con barra", "group": "Femoral", "icon": "peso_muerto", "reps": "4×6-8"}, {"id": "peso_muerto_unilateral", "name": "Peso muerto unilateral con mancuerna", "group": "Glúteo", "icon": "peso_muerto_unilateral", "reps": "4×8"}, {"id": "gemelos_prensa", "name": "Gemelos unilaterales en prensa", "group": "Gemelo", "icon": "gemelos_prensa", "reps": "4×10-12"}, {"id": "gemelos_mancuernas", "name": "Gemelos de pie con mancuernas", "group": "Gemelo", "icon": "gemelos_mancuernas", "reps": "4×12-15"}, {"id": "abs_crunch", "name": "Abdominales (crunch)", "group": "Abdomen", "icon": "abs_crunch", "reps": "3-4×15-20"}, {"id": "cardio", "name": "Cardio / aeróbico", "group": "Cardio", "icon": "cardio", "reps": "10-15 min"}];
+const GROUP_CLASS = {"Pecho": "g1", "Hombro": "g2", "Tríceps": "g3", "Espalda": "g4", "Bíceps": "g5", "Antebrazo": "g6", "Cuádriceps": "g7", "Femoral": "g8", "Glúteo": "g9", "Gemelo": "g10", "Abdomen": "gn", "Cardio": "gc"};
+const GROUPS = ["Pecho", "Hombro", "Tríceps", "Espalda", "Bíceps", "Antebrazo", "Cuádriceps", "Femoral", "Glúteo", "Gemelo", "Abdomen", "Cardio"];
+// Apps Script publicado en la cuenta de Drive de Training Time (guarda cada rutina en Drive).
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwxHCjFWI64r2D4Wt0DmFN7eW0CV8z9aukmB7LabUr3V3Lg00R_lvGxj16C1tvT2EJ9nA/exec';
+</script>
+<script>
+(function(){
+  "use strict";
+
+  var LS_DRAFT = 'rutina-builder:draft';
+  var LS_TEMPLATES = 'rutina-builder:templates';
+
+  function uid(){ return Math.random().toString(36).slice(2,9); }
+
+  function newDay(n){ return { id: uid(), title: 'Día ' + n, focus: '', exercises: [] }; }
+  function defaultState(){ return { gym:'', trainer:'', client:'', phase:'', days:[ newDay(1) ] }; }
+
+  function safeParse(raw){ try{ return JSON.parse(raw); }catch(e){ return null; } }
+
+  function loadDraft(){
+    try{
+      var raw = localStorage.getItem(LS_DRAFT);
+      var parsed = raw ? safeParse(raw) : null;
+      if(parsed && parsed.days && parsed.days.length) return parsed;
+    }catch(e){}
+    return null;
+  }
+
+  var state = loadDraft() || defaultState();
+
+  var saveTimer = null;
+  function saveDraftNow(){ try{ localStorage.setItem(LS_DRAFT, JSON.stringify(state)); }catch(e){} }
+  function saveDraft(){
+    // keep the live preview in sync with every edit (cheap, separate DOM subtree — never steals focus from the builder form)
+    try{ renderPreview(); }catch(e){}
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveDraftNow, 350);
+  }
+
+  function loadTemplates(){
+    try{
+      var raw = localStorage.getItem(LS_TEMPLATES);
+      var parsed = raw ? safeParse(raw) : null;
+      return Array.isArray(parsed) ? parsed : [];
+    }catch(e){ return []; }
+  }
+  function saveTemplates(list){ try{ localStorage.setItem(LS_TEMPLATES, JSON.stringify(list)); }catch(e){} }
+
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  function groupClass(g){ return GROUP_CLASS[g] || 'gn'; }
+
+  // ---------------- meta ----------------
+  var metaFields = ['gym','trainer','client','phase'];
+  function bindMeta(){
+    metaFields.forEach(function(key){
+      var el = document.getElementById('f-' + key);
+      el.value = state[key] || '';
+      el.addEventListener('input', function(){
+        state[key] = el.value;
+        saveDraft();
+      });
+    });
+  }
+
+  // ---------------- days / exercises render ----------------
+  var daysListEl = document.getElementById('days-list');
+
+  function dayIndex(dayId){ return state.days.findIndex(function(d){ return d.id === dayId; }); }
+
+  function renderDays(){
+    daysListEl.innerHTML = '';
+    state.days.forEach(function(day, di){
+      var card = document.createElement('div');
+      card.className = 'day-card';
+
+      var head = document.createElement('div');
+      head.className = 'day-card-head';
+
+      var titleInput = document.createElement('input');
+      titleInput.className = 'title';
+      titleInput.value = day.title;
+      titleInput.setAttribute('aria-label','Título del día');
+      titleInput.addEventListener('input', function(){ day.title = titleInput.value; saveDraft(); });
+
+      var focusInput = document.createElement('input');
+      focusInput.className = 'focus';
+      focusInput.placeholder = 'Foco del día (ej: Pecho, hombro y tríceps)';
+      focusInput.value = day.focus;
+      focusInput.addEventListener('input', function(){ day.focus = focusInput.value; saveDraft(); });
+
+      var tools = document.createElement('div');
+      tools.className = 'day-tools';
+      tools.appendChild(iconBtn('up', function(){ moveDay(day.id, -1); }, 'Mover día arriba'));
+      tools.appendChild(iconBtn('down', function(){ moveDay(day.id, 1); }, 'Mover día abajo'));
+      tools.appendChild(iconBtn('trash', function(){ removeDay(day.id); }, 'Eliminar día'));
+
+      head.appendChild(titleInput);
+      head.appendChild(focusInput);
+      head.appendChild(tools);
+      card.appendChild(head);
+
+      day.exercises.forEach(function(ex, ei){
+        card.appendChild(renderExRow(day, ex, ei));
+      });
+
+      var addBtn = document.createElement('button');
+      addBtn.type = 'button';
+      addBtn.className = 'add-ex-btn';
+      addBtn.textContent = '+ Agregar ejercicio';
+      addBtn.addEventListener('click', function(){ openPicker(day.id); });
+      card.appendChild(addBtn);
+
+      daysListEl.appendChild(card);
+    });
+  }
+
+  function renderExRow(day, ex, ei){
+    var row = document.createElement('div');
+    row.className = 'ex-row';
+
+    var iconWrap = document.createElement('div');
+    var cls = groupClass(ex.group);
+    iconWrap.className = 'ex-icon';
+    iconWrap.style.background = 'var(--' + cls + '-soft)';
+    iconWrap.style.color = 'var(--' + cls + ')';
+    iconWrap.innerHTML = '<svg><use href="#ic-' + (ex.icon || 'custom') + '"></use></svg>';
+    row.appendChild(iconWrap);
+
+    var info = document.createElement('div');
+    info.className = 'ex-info';
+
+    var nameLine = document.createElement('div');
+    nameLine.className = 'ex-name';
+    var tagEl = document.createElement('span');
+    tagEl.className = 'ex-tag';
+    tagEl.style.background = 'var(--' + cls + '-soft)';
+    tagEl.style.color = 'var(--' + cls + ')';
+    tagEl.textContent = ex.group;
+    nameLine.appendChild(document.createTextNode(ex.name));
+    nameLine.appendChild(tagEl);
+    info.appendChild(nameLine);
+
+    var fields = document.createElement('div');
+    fields.className = 'ex-fields';
+
+    var repsInput = document.createElement('input');
+    repsInput.className = 'reps';
+    repsInput.value = ex.reps || '';
+    repsInput.placeholder = 'series×rep';
+    repsInput.addEventListener('input', function(){ ex.reps = repsInput.value; saveDraft(); });
+
+    var noteInput = document.createElement('input');
+    noteInput.className = 'note';
+    noteInput.value = ex.note || '';
+    noteInput.placeholder = 'Nota técnica (opcional) — ej: REST-PAUSE, al fallo...';
+    noteInput.addEventListener('input', function(){ ex.note = noteInput.value; saveDraft(); });
+
+    fields.appendChild(repsInput);
+    fields.appendChild(noteInput);
+    info.appendChild(fields);
+    row.appendChild(info);
+
+    var rowTools = document.createElement('div');
+    rowTools.className = 'ex-row-tools';
+    rowTools.appendChild(iconBtn('up', function(){ moveExercise(day.id, ei, -1); }, 'Subir'));
+    rowTools.appendChild(iconBtn('down', function(){ moveExercise(day.id, ei, 1); }, 'Bajar'));
+    rowTools.appendChild(iconBtn('trash', function(){ removeExercise(day.id, ei); }, 'Quitar'));
+    row.appendChild(rowTools);
+
+    return row;
+  }
+
+  var ICONS_SVG = {
+    up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>',
+    down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',
+    trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13"/></svg>'
+  };
+  function iconBtn(kind, onClick, label){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'icon-btn';
+    b.title = label;
+    b.setAttribute('aria-label', label);
+    b.innerHTML = ICONS_SVG[kind];
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  function moveDay(dayId, dir){
+    var i = dayIndex(dayId);
+    var j = i + dir;
+    if(i < 0 || j < 0 || j >= state.days.length) return;
+    var tmp = state.days[i]; state.days[i] = state.days[j]; state.days[j] = tmp;
+    saveDraft(); renderDays();
+  }
+  function removeDay(dayId){
+    if(state.days.length <= 1){ alert('Tiene que quedar al menos un día.'); return; }
+    if(!confirm('¿Eliminar este día y sus ejercicios?')) return;
+    var i = dayIndex(dayId);
+    state.days.splice(i,1);
+    saveDraft(); renderDays();
+  }
+  function moveExercise(dayId, ei, dir){
+    var day = state.days[dayIndex(dayId)];
+    var ej = ei + dir;
+    if(ej < 0 || ej >= day.exercises.length) return;
+    var tmp = day.exercises[ei]; day.exercises[ei] = day.exercises[ej]; day.exercises[ej] = tmp;
+    saveDraft(); renderDays();
+  }
+  function removeExercise(dayId, ei){
+    var day = state.days[dayIndex(dayId)];
+    day.exercises.splice(ei,1);
+    saveDraft(); renderDays();
+  }
+  function addDay(){
+    state.days.push(newDay(state.days.length + 1));
+    saveDraft(); renderDays();
+  }
+  document.getElementById('btn-add-day').addEventListener('click', addDay);
+
+  function addExerciseToDay(dayId, ex){
+    var day = state.days[dayIndex(dayId)];
+    day.exercises.push({
+      uid: uid(), exId: ex.id, name: ex.name, group: ex.group,
+      icon: ex.icon, reps: ex.reps || '', note: ''
+    });
+    saveDraft(); renderDays();
+  }
+
+  // ---------------- picker ----------------
+  var pickerRoot = document.getElementById('picker-root');
+  var pickerState = { dayId: null, group: 'Todos', q: '' };
+
+  function openPicker(dayId){
+    pickerState.dayId = dayId; pickerState.group = 'Todos'; pickerState.q = '';
+    pickerRoot.innerHTML =
+      '<div class="picker-backdrop" id="picker-backdrop">' +
+        '<div class="picker" role="dialog" aria-label="Elegir ejercicio">' +
+          '<div class="picker-head">' +
+            '<h3>Agregar ejercicio</h3>' +
+            '<input type="text" class="picker-search" id="picker-search" placeholder="Buscar ejercicio…" autocomplete="off">' +
+            '<div class="chips" id="picker-chips"></div>' +
+          '</div>' +
+          '<div class="picker-list" id="picker-list"></div>' +
+          '<div class="picker-foot">' +
+            '<button class="btn ghost" id="picker-close" type="button">Cerrar</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    var chipsEl = document.getElementById('picker-chips');
+    var allGroups = ['Todos'].concat(GROUPS);
+    allGroups.forEach(function(g){
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip' + (g === pickerState.group ? ' active' : '');
+      chip.textContent = g;
+      chip.addEventListener('click', function(){
+        pickerState.group = g;
+        Array.prototype.forEach.call(chipsEl.children, function(c){ c.classList.remove('active'); });
+        chip.classList.add('active');
+        renderPickerList();
+      });
+      chipsEl.appendChild(chip);
+    });
+
+    document.getElementById('picker-search').addEventListener('input', function(e){
+      pickerState.q = e.target.value.toLowerCase();
+      renderPickerList();
+    });
+    document.getElementById('picker-close').addEventListener('click', closePicker);
+    document.getElementById('picker-backdrop').addEventListener('click', function(e){
+      if(e.target.id === 'picker-backdrop') closePicker();
+    });
+
+    renderPickerList();
+  }
+
+  function closePicker(){ pickerRoot.innerHTML = ''; }
+
+  function renderPickerList(){
+    var listEl = document.getElementById('picker-list');
+    if(!listEl) return;
+    listEl.innerHTML = '';
+
+    // custom exercise card (always first)
+    var customCard = document.createElement('div');
+    customCard.className = 'pick-card';
+    customCard.innerHTML =
+      '<div class="pi" style="background:var(--gn-soft);color:var(--gn)"><svg><use href="#ic-custom"></use></svg></div>' +
+      '<div class="pn">+ Ejercicio personalizado</div><div class="pg">Escribir a mano</div>';
+    customCard.addEventListener('click', addCustomExercise);
+    listEl.appendChild(customCard);
+
+    var items = EXERCISES.filter(function(ex){
+      var groupOk = pickerState.group === 'Todos' || ex.group === pickerState.group;
+      var qOk = !pickerState.q || ex.name.toLowerCase().indexOf(pickerState.q) !== -1;
+      return groupOk && qOk;
+    });
+
+    items.forEach(function(ex){
+      var cls = groupClass(ex.group);
+      var card = document.createElement('div');
+      card.className = 'pick-card';
+      card.innerHTML =
+        '<div class="pi" style="background:var(--' + cls + '-soft);color:var(--' + cls + ')"><svg><use href="#ic-' + ex.icon + '"></use></svg></div>' +
+        '<div class="pn">' + esc(ex.name) + '</div><div class="pg">' + esc(ex.group) + '</div>';
+      card.addEventListener('click', function(){
+        addExerciseToDay(pickerState.dayId, ex);
+        closePicker();
+      });
+      listEl.appendChild(card);
+    });
+
+    if(items.length === 0){
+      var empty = document.createElement('p');
+      empty.className = 'empty-note';
+      empty.textContent = 'No hay ejercicios que coincidan con la búsqueda.';
+      listEl.appendChild(empty);
+    }
+  }
+
+  function addCustomExercise(){
+    var name = prompt('Nombre del ejercicio:');
+    if(!name || !name.trim()) return;
+    var groupList = GROUPS.join(', ');
+    var group = prompt('Grupo muscular (' + groupList + '):', 'Pecho');
+    if(!group || GROUPS.indexOf(group) === -1) group = 'Abdomen';
+    var reps = prompt('Series × repeticiones (opcional):', '4×10') || '';
+    addExerciseToDay(pickerState.dayId, { id: 'custom-' + uid(), name: name.trim(), group: group, icon: 'custom', reps: reps });
+    closePicker();
+  }
+
+  // ---------------- templates ----------------
+  var templatesRoot = document.getElementById('templates-root');
+
+  function openTemplates(){
+    var list = loadTemplates();
+    var rows = list.map(function(t){
+      return '<div class="tmpl-row" data-id="' + t.id + '">' +
+        '<div><div class="tn">' + esc(t.name) + '</div><div class="td">' + esc(t.savedAt) + '</div></div>' +
+        '<button class="btn small" data-act="load">Cargar</button>' +
+        '<button class="btn small ghost" data-act="del">Eliminar</button>' +
+      '</div>';
+    }).join('');
+
+    templatesRoot.innerHTML =
+      '<div class="picker-backdrop" id="tmpl-backdrop">' +
+        '<div class="picker" role="dialog" aria-label="Mis plantillas" style="max-width:480px;">' +
+          '<div class="picker-head"><h3>Mis plantillas</h3></div>' +
+          (list.length ? '<div class="tmpl-list">' + rows + '</div>' : '<p class="empty-note">Todavía no guardaste ninguna plantilla. Armá una rutina y usá “Guardar como plantilla”.</p>') +
+          '<div class="picker-foot"><button class="btn ghost" id="tmpl-close" type="button">Cerrar</button></div>' +
+        '</div>' +
+      '</div>';
+
+    document.getElementById('tmpl-close').addEventListener('click', closeTemplates);
+    document.getElementById('tmpl-backdrop').addEventListener('click', function(e){
+      if(e.target.id === 'tmpl-backdrop') closeTemplates();
+    });
+    Array.prototype.forEach.call(templatesRoot.querySelectorAll('.tmpl-row button'), function(btn){
+      btn.addEventListener('click', function(){
+        var row = btn.closest('.tmpl-row');
+        var id = row.getAttribute('data-id');
+        var act = btn.getAttribute('data-act');
+        var all = loadTemplates();
+        var tmpl = all.find(function(t){ return t.id === id; });
+        if(act === 'load' && tmpl){
+          state = JSON.parse(JSON.stringify(tmpl.routine));
+          saveDraftNow();
+          renderAll();
+          closeTemplates();
+        } else if(act === 'del' && confirm('¿Eliminar esta plantilla?')){
+          saveTemplates(all.filter(function(t){ return t.id !== id; }));
+          openTemplates();
+        }
+      });
+    });
+  }
+  function closeTemplates(){ templatesRoot.innerHTML = ''; }
+
+  document.getElementById('btn-templates').addEventListener('click', openTemplates);
+  document.getElementById('btn-save-template').addEventListener('click', function(){
+    var name = prompt('Nombre para esta plantilla (ej: "Definición 3 días"):', state.client ? ('Rutina de ' + state.client) : '');
+    if(!name || !name.trim()) return;
+    var list = loadTemplates();
+    list.unshift({
+      id: uid(), name: name.trim(),
+      savedAt: new Date().toLocaleDateString('es-AR', {day:'2-digit',month:'2-digit',year:'numeric'}),
+      routine: JSON.parse(JSON.stringify(state))
+    });
+    saveTemplates(list);
+    alert('Plantilla guardada.');
+  });
+  document.getElementById('btn-new').addEventListener('click', function(){
+    if(!confirm('¿Empezar una rutina nueva? Se perderá lo que no hayas guardado como plantilla.')) return;
+    state = defaultState();
+    saveDraftNow();
+    renderAll();
+  });
+
+  // ---------------- preview ----------------
+  function renderPreview(){
+    var el = document.getElementById('preview-page');
+    var parts = [];
+    parts.push('<div class="pv-top"><div><div class="pv-eyebrow">' + esc(state.gym || 'Gimnasio') + (state.phase ? ' · ' + esc(state.phase) : '') + '</div><h2>Rutina de entrenamiento</h2></div>' +
+      '<div class="pv-who"><b>' + esc(state.client || 'Cliente') + '</b>' + (state.trainer ? 'Profe: ' + esc(state.trainer) : '') + '</div></div>');
+
+    state.days.forEach(function(day, di){
+      parts.push('<div class="pv-day">');
+      parts.push('<div class="pv-day-head"><span class="pv-day-n">' + String(di+1).padStart(2,'0') + '</span><h3>' + esc(day.title) + (day.focus ? ' <span class="dash">—</span> ' + esc(day.focus).toUpperCase() : '') + '</h3></div>');
+
+      if(day.exercises.length === 0){
+        parts.push('<p class="pv-empty">Todavía no agregaste ejercicios a este día.</p>');
+      } else {
+        parts.push('<table class="pv-table"><thead><tr><th>Ejercicio</th><th class="r">Series × rep</th></tr></thead><tbody>');
+        day.exercises.forEach(function(ex){
+          var cls = groupClass(ex.group);
+          parts.push('<tr><td><span class="pv-dot" style="background:var(--' + cls + ')"></span>' + esc(ex.name) +
+            '<span class="pv-tag" style="background:var(--' + cls + '-soft);color:var(--' + cls + ')">' + esc(ex.group) + '</span>' +
+            (ex.note ? '<span class="pv-note">' + esc(ex.note) + '</span>' : '') +
+            '</td><td class="pv-rep">' + esc(ex.reps || '—') + '</td></tr>');
+        });
+        parts.push('</tbody></table>');
+
+        parts.push('<div class="pv-tiles">');
+        day.exercises.forEach(function(ex){
+          var cls = groupClass(ex.group);
+          parts.push('<div class="pv-tile" style="background:var(--' + cls + '-soft);color:var(--' + cls + ')"><svg><use href="#ic-' + (ex.icon || 'custom') + '"></use></svg></div>');
+        });
+        parts.push('</div>');
+      }
+      parts.push('</div>');
+    });
+
+    parts.push('<div class="pv-foot">GENERADOR DE RUTINAS — ' + esc((state.gym || 'GIMNASIO')).toUpperCase() + '</div>');
+    el.innerHTML = parts.join('');
+  }
+
+  // ---------------- guardar en drive ----------------
+  // Puente: un Google Apps Script publicado en la cuenta del gym recibe la
+  // rutina por POST y la guarda en Drive con los permisos de esa cuenta —
+  // así ningún profe tiene que loguearse, y funciona igual desde el Artifact
+  // de Claude o desde GitHub Pages.
+  function setDriveStatus(text, cls){
+    var el = document.getElementById('drive-status');
+    if(!el) return;
+    el.className = 'drive-status' + (cls ? ' ' + cls : '');
+    el.innerHTML = text;
+  }
+
+  function saveRoutineToDrive(){
+    var btn = document.getElementById('btn-drive');
+    var client = (state.client || '').trim();
+    if(!client){
+      setDriveStatus('Completá el campo "Cliente" antes de guardar.', 'is-err');
+      document.getElementById('f-client').focus();
+      return;
+    }
+    if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf('http') !== 0){
+      setDriveStatus('Guardar en Drive todavía no está configurado en esta copia de la app.', 'is-err');
+      return;
+    }
+
+    btn.disabled = true;
+    setDriveStatus('Guardando…');
+
+    fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // evita el preflight CORS que Apps Script no responde
+      body: JSON.stringify(state)
+    }).then(function(res){
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function(data){
+      if(!data || !data.ok) throw new Error((data && data.error) || 'Error desconocido');
+      var link = data.url ? ' <a href="' + esc(data.url) + '" target="_blank" rel="noopener">Abrir en Drive ↗</a>' : '';
+      setDriveStatus('Guardado ✓' + link, 'is-ok');
+    }).catch(function(err){
+      var msg = (err && err.message) ? err.message : 'error de conexión';
+      setDriveStatus('No se pudo guardar: ' + esc(msg), 'is-err');
+    }).finally(function(){
+      btn.disabled = false;
+    });
+  }
+
+  (function bindDriveButton(){
+    var btn = document.getElementById('btn-drive');
+    if(!btn) return;
+    btn.addEventListener('click', saveRoutineToDrive);
+  })();
+
+  // ---------------- tabs ----------------
+  var tabBtns = Array.prototype.slice.call(document.querySelectorAll('.tab-btn'));
+  var tabBuild = document.getElementById('tab-build');
+  var tabPreview = document.getElementById('tab-preview');
+  function showTab(name){
+    tabBtns.forEach(function(b){ b.classList.toggle('active', b.dataset.tab === name); });
+    tabBuild.hidden = name !== 'build';
+    tabPreview.hidden = name !== 'preview';
+    if(name === 'preview') renderPreview();
+  }
+  tabBtns.forEach(function(b){ b.addEventListener('click', function(){ showTab(b.dataset.tab); }); });
+
+  document.getElementById('btn-print').addEventListener('click', function(){
+    renderPreview();
+    showTab('preview');
+    setTimeout(function(){ window.print(); }, 50);
+  });
+  // keep the print output fresh even if printed via Ctrl/Cmd+P without clicking the button
+  window.addEventListener('beforeprint', renderPreview);
+
+  // ---------------- init ----------------
+  function renderAll(){
+    bindMeta();
+    renderDays();
+    renderPreview();
+  }
+
+  function boot(hotData){
+    try{
+      if(hotData && hotData.state && hotData.state.days && hotData.state.days.length){
+        state = hotData.state;
+      }
+    }catch(e){}
+    renderAll();
+    try{
+      if(window.claude && window.claude.hot && window.claude.hot.snapshot){
+        window.claude.hot.snapshot(function(){ return { state: state }; });
+      }
+    }catch(e){}
+  }
+
+  try{
+    if(window.claude && window.claude.hot && window.claude.hot.ready){
+      window.claude.hot.ready(boot);
+    } else {
+      boot((window.claude && window.claude.hot && window.claude.hot.data) || {});
+    }
+  }catch(e){ boot({}); }
+})();
+
+</script>
